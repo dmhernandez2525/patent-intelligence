@@ -241,28 +241,39 @@ class ExpirationService:
             for row in top_cpc_result.all()
         ]
 
-        # Monthly expiration timeline (next 12 months)
+        # Monthly expiration timeline (next 12 months) - single query
+        first_month_start = date(today.year, today.month, 1)
+        # Calculate end of 12th month
+        end_month = today.month + 11
+        end_year = today.year + (end_month - 1) // 12
+        end_month_adj = ((end_month - 1) % 12) + 1
+        last_month_end = date(end_year + (end_month_adj // 12),
+                             (end_month_adj % 12) + 1, 1) - timedelta(days=1)
+
+        timeline_result = await session.execute(
+            select(
+                extract("year", Patent.expiration_date).label("exp_year"),
+                extract("month", Patent.expiration_date).label("exp_month"),
+                func.count(Patent.id).label("count"),
+            ).where(and_(
+                *conditions_base,
+                Patent.expiration_date >= first_month_start,
+                Patent.expiration_date <= last_month_end,
+            ))
+            .group_by("exp_year", "exp_month")
+            .order_by("exp_year", "exp_month")
+        )
+        month_counts = {(int(row[0]), int(row[1])): row[2] for row in timeline_result.all()}
+
         timeline = []
         for i in range(12):
-            month_start = date(today.year + (today.month + i - 1) // 12,
-                             ((today.month + i - 1) % 12) + 1, 1)
-            if i < 11:
-                month_end = date(today.year + (today.month + i) // 12,
-                               ((today.month + i) % 12) + 1, 1) - timedelta(days=1)
-            else:
-                month_end = date(month_start.year + (month_start.month // 12),
-                               (month_start.month % 12) + 1, 1) - timedelta(days=1)
-
-            month_count = (await session.execute(
-                select(func.count(Patent.id)).where(and_(
-                    *conditions_base,
-                    Patent.expiration_date >= month_start,
-                    Patent.expiration_date <= month_end,
-                ))
-            )).scalar() or 0
+            m = today.month + i
+            y = today.year + (m - 1) // 12
+            m_adj = ((m - 1) % 12) + 1
+            month_start = date(y, m_adj, 1)
             timeline.append({
                 "month": month_start.isoformat(),
-                "count": month_count,
+                "count": month_counts.get((y, m_adj), 0),
             })
 
         return {

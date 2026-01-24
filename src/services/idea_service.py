@@ -287,7 +287,11 @@ class IdeaGenerationService:
         )
         response.raise_for_status()
         data = response.json()
-        content = data["content"][0]["text"]
+        content_blocks = data.get("content", [])
+        if not content_blocks or "text" not in content_blocks[0]:
+            logger.warning("idea_generation.anthropic_empty_response")
+            return self._generate_fallback_ideas(count)
+        content = content_blocks[0]["text"]
         return self._parse_llm_response(content, count)
 
     async def _call_openai(self, prompt: str, count: int) -> list[dict]:
@@ -308,7 +312,11 @@ class IdeaGenerationService:
         )
         response.raise_for_status()
         data = response.json()
-        content = data["choices"][0]["message"]["content"]
+        choices = data.get("choices", [])
+        if not choices or "message" not in choices[0]:
+            logger.warning("idea_generation.openai_empty_response")
+            return self._generate_fallback_ideas(count)
+        content = choices[0]["message"].get("content", "")
         return self._parse_llm_response(content, count)
 
     def _parse_llm_response(self, content: str, count: int) -> list[dict]:

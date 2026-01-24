@@ -323,14 +323,26 @@ class EPOIngester(BaseIngester):
         if isinstance(doc_id, list):
             for did in doc_id:
                 date_val = did.get("date", {}).get("$", "")
-                if date_val and len(date_val) >= 8:
-                    return f"{date_val[:4]}-{date_val[4:6]}-{date_val[6:8]}"
+                result = self._parse_epo_date(date_val)
+                if result:
+                    return result
         elif isinstance(doc_id, dict):
             date_val = doc_id.get("date", {}).get("$", "")
-            if date_val and len(date_val) >= 8:
-                return f"{date_val[:4]}-{date_val[4:6]}-{date_val[6:8]}"
+            return self._parse_epo_date(date_val)
 
         return None
+
+    @staticmethod
+    def _parse_epo_date(date_val: str) -> str | None:
+        """Parse and validate a date string in YYYYMMDD format."""
+        if not date_val or len(date_val) < 8:
+            return None
+        try:
+            from datetime import datetime
+            parsed = datetime.strptime(date_val[:8], "%Y%m%d")
+            return parsed.strftime("%Y-%m-%d")
+        except ValueError:
+            return None
 
     def _extract_priority_date(self, biblio: dict) -> str | None:
         """Extract earliest priority date."""
