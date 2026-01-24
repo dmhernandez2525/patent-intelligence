@@ -5,6 +5,7 @@ import SearchPage from './pages/SearchPage'
 import ExpirationPage from './pages/ExpirationPage'
 import SimilarityPage from './pages/SimilarityPage'
 import TrendsPage from './pages/TrendsPage'
+import IdeasPage from './pages/IdeasPage'
 import IngestionPage from './pages/IngestionPage'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Route path="/expiration" element={<ExpirationPage />} />
       <Route path="/similarity" element={<SimilarityPage />} />
       <Route path="/trends" element={<TrendsPage />} />
+      <Route path="/ideas" element={<IdeasPage />} />
       <Route path="/ingestion" element={<IngestionPage />} />
     </Routes>
   )
