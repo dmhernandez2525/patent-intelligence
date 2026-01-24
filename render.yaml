@@ -1,0 +1,97 @@
+services:
+  - type: web
+    name: patent-intelligence-api
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn src.api.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: patent-intelligence-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: "https://patent-intelligence.onrender.com"
+
+  - type: web
+    name: patent-intelligence
+    runtime: static
+    plan: free
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    envVars:
+      - key: VITE_API_URL
+        value: "https://patent-intelligence-api.onrender.com"
+
+  - type: worker
+    name: patent-intelligence-worker
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A src.pipeline.orchestrator worker --loglevel=info --concurrency=2
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: patent-intelligence-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  - type: redis
+    name: patent-intelligence-cache
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+databases:
+  - name: patent-intelligence-db
+    plan: basic-256mb
+    region: oregon
+    postgresMajorVersion: "16"
+    ipAllowList: []
