@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import settings
-from src.api.routes import health, patents, search, expiration, analysis, similarity, ideas, watchlist, ingestion
+from src.api.routes import health, patents, search, expiration, analysis, similarity, ideas, watchlist, ingestion, whitespace
 from src.utils.logger import logger
 
 
@@ -44,3 +44,4 @@ app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(ideas.router, prefix="/api/ideas", tags=["Ideas"])
 app.include_router(watchlist.router, prefix="/api/watchlist", tags=["Watchlist"])
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
+app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])
