@@ -1,3 +1,5 @@
+import secrets
+
 from pydantic_settings import BaseSettings
 
 
@@ -34,7 +36,7 @@ class Settings(BaseSettings):
     embedding_dimension: int = 768
 
     # Auth
-    secret_key: str = "change-me-in-production"
+    secret_key: str = secrets.token_urlsafe(32)
     access_token_expire_minutes: int = 1440
     algorithm: str = "HS256"
 

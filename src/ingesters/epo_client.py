@@ -6,13 +6,13 @@ DOCDB (bibliographic), INPADOC (legal status), and family data.
 API Documentation: https://www.epo.org/searching-for-patents/data/web-services/ops.html
 """
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import httpx
 
 from src.config import settings
 from src.utils.logger import logger
-from src.utils.rate_limiter import TokenBucketRateLimiter
+from src.utils.rate_limiter import RateLimiter
 
 
 class EPOAuthError(Exception):
@@ -42,9 +42,9 @@ class EPOClient:
         self.consumer_secret = consumer_secret or settings.epo_consumer_secret
         self._access_token: str | None = None
         self._token_expires_at: datetime | None = None
-        self._rate_limiter = TokenBucketRateLimiter(
-            rate=2.0,  # EPO allows ~2 requests/sec for registered users
-            capacity=10,
+        self._rate_limiter = RateLimiter(
+            max_requests=10,  # EPO allows ~2 requests/sec for registered users
+            time_window=5.0,
         )
         self._client: httpx.AsyncClient | None = None
 
@@ -86,7 +86,7 @@ class EPOClient:
         data = response.json()
         self._access_token = data["access_token"]
         expires_in = int(data.get("expires_in", 1200))
-        self._token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in - 60)
+        self._token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in - 60)
 
         logger.info("epo.authenticated", expires_in=expires_in)
 
@@ -95,7 +95,7 @@ class EPOClient:
         if (
             self._access_token is None
             or self._token_expires_at is None
-            or datetime.utcnow() >= self._token_expires_at
+            or datetime.now(timezone.utc) >= self._token_expires_at
         ):
             await self._authenticate()
         return self._access_token  # type: ignore[return-value]

@@ -5,7 +5,7 @@ and competitive landscape insights.
 """
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_, extract, case, text
+from sqlalchemy import select, func, and_, extract, case, text, column
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.patent import Patent, Citation
@@ -33,6 +33,7 @@ class CitationService:
 
         nodes: dict[str, dict] = {}
         edges: list[dict] = []
+        edge_set: set[tuple[str, str, str]] = set()
         visited: set[int] = set()
 
         # Add target node
@@ -56,11 +57,15 @@ class CitationService:
                         nodes[cited_patent.patent_number] = self._to_node(cited_patent, depth=level)
                         visited.add(cited_patent.id)
                         next_level.append(cited_patent)
-                    edges.append({
-                        "source": patent.patent_number,
-                        "target": citation.cited_patent_number,
-                        "type": "cites",
-                    })
+                    target_num = cited_patent.patent_number if cited_patent else citation.cited_patent_number
+                    edge_key = (patent.patent_number, target_num, "cites")
+                    if edge_key not in edge_set:
+                        edge_set.add(edge_key)
+                        edges.append({
+                            "source": patent.patent_number,
+                            "target": target_num,
+                            "type": "cites",
+                        })
 
                 # Backward citations (patents that cite this one)
                 citing = await self._get_backward_citations(session, patent.id)
@@ -71,11 +76,15 @@ class CitationService:
                         nodes[citing_patent.patent_number] = self._to_node(citing_patent, depth=level)
                         visited.add(citing_patent.id)
                         next_level.append(citing_patent)
-                    edges.append({
-                        "source": citing_patent.patent_number if citing_patent else "unknown",
-                        "target": patent.patent_number,
-                        "type": "cited_by",
-                    })
+                    source_num = citing_patent.patent_number if citing_patent else "unknown"
+                    edge_key = (source_num, patent.patent_number, "cited_by")
+                    if edge_key not in edge_set:
+                        edge_set.add(edge_key)
+                        edges.append({
+                            "source": source_num,
+                            "target": patent.patent_number,
+                            "type": "cited_by",
+                        })
 
             current_level = next_level
 
@@ -252,7 +261,7 @@ class CitationService:
 
         if cpc_prefix:
             top_query = top_query.having(
-                func.unnest(Patent.cpc_codes).like(f"{cpc_prefix}%")
+                column("cpc_code").like(f"{cpc_prefix}%")
             )
 
         top_query = (
@@ -265,17 +274,19 @@ class CitationService:
         result = await session.execute(top_query)
         top_codes = result.all()
 
-        trends = []
+        # Deduplicate by 4-char prefix and aggregate counts
+        prefix_totals: dict[str, int] = {}
         for row in top_codes:
             code = row[0]
-            # Get only the first 4 chars for grouping
             code_prefix = code[:4] if len(code) >= 4 else code
-            trends.append({
-                "cpc_code": code_prefix,
-                "total_patents": row[1],
-            })
+            prefix_totals[code_prefix] = prefix_totals.get(code_prefix, 0) + row[1]
 
-        return trends
+        trends = [
+            {"cpc_code": code, "total_patents": total}
+            for code, total in sorted(prefix_totals.items(), key=lambda x: x[1], reverse=True)
+        ]
+
+        return trends[:top_n]
 
     async def _get_growth_leaders(
         self,

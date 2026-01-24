@@ -219,7 +219,7 @@ class EPOIngester(BaseIngester):
             ipc_codes = self._extract_classifications(biblio, "classification-ipc", "IPC")
 
             return RawPatentData(
-                patent_number=normalize_patent_number(patent_number),
+                patent_number=normalize_patent_number(patent_number, country or "EP"),
                 title=title,
                 abstract=abstract,
                 filing_date=filing_date,

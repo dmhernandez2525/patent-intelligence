@@ -17,6 +17,15 @@ from src.utils.logger import logger
 class IdeaGenerationService:
     """Service for generating invention ideas from patent intelligence."""
 
+    def __init__(self):
+        self._http_client: "httpx.AsyncClient | None" = None
+
+    async def _get_http_client(self):
+        import httpx
+        if self._http_client is None or self._http_client.is_closed:
+            self._http_client = httpx.AsyncClient(timeout=60.0)
+        return self._http_client
+
     async def generate_ideas(
         self,
         session: AsyncSession,
@@ -84,7 +93,7 @@ class IdeaGenerationService:
         ]
         if cpc_prefix:
             expiry_conditions.append(
-                Patent.cpc_codes.any(cpc_prefix)
+                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
             )
 
         expiring_result = await session.execute(
@@ -116,7 +125,7 @@ class IdeaGenerationService:
         ]
         if cpc_prefix:
             growth_conditions.append(
-                Patent.cpc_codes.any(cpc_prefix)
+                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
             )
 
         cpc_unnest = func.unnest(Patent.cpc_codes).label("cpc_code")
@@ -141,7 +150,7 @@ class IdeaGenerationService:
             ]
             if cpc_prefix:
                 impact_conditions.append(
-                    Patent.cpc_codes.any(cpc_prefix)
+                    func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
                 )
 
             impact_result = await session.execute(
@@ -262,49 +271,45 @@ class IdeaGenerationService:
 
     async def _call_anthropic(self, prompt: str, count: int) -> list[dict]:
         """Call Anthropic Claude API."""
-        import httpx
-
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": settings.anthropic_api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-sonnet-4-20250514",
-                    "max_tokens": 4096,
-                    "messages": [{"role": "user", "content": prompt}],
-                },
-            )
-            response.raise_for_status()
-            data = response.json()
-            content = data["content"][0]["text"]
-            return self._parse_llm_response(content, count)
+        client = await self._get_http_client()
+        response = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": settings.anthropic_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 4096,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = data["content"][0]["text"]
+        return self._parse_llm_response(content, count)
 
     async def _call_openai(self, prompt: str, count: int) -> list[dict]:
         """Call OpenAI API."""
-        import httpx
-
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {settings.openai_api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": "gpt-4o",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 4096,
-                    "temperature": 0.8,
-                },
-            )
-            response.raise_for_status()
-            data = response.json()
-            content = data["choices"][0]["message"]["content"]
-            return self._parse_llm_response(content, count)
+        client = await self._get_http_client()
+        response = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.openai_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "gpt-4o",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 4096,
+                "temperature": 0.8,
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return self._parse_llm_response(content, count)
 
     def _parse_llm_response(self, content: str, count: int) -> list[dict]:
         """Parse LLM response into structured ideas."""
@@ -403,6 +408,22 @@ class IdeaGenerationService:
                 "target_cpc": "G16B50/00",
                 "inspired_by": [],
                 "novelty_score": 0.70,
+            },
+            {
+                "title": "Acoustic Metamaterial Noise Cancellation Panel",
+                "description": "A passive noise cancellation system using 3D-printed acoustic metamaterials with sub-wavelength resonant structures, achieving broadband attenuation without electronics or power.",
+                "rationale": "Applies expiring acoustic dampening patents with additive manufacturing to create next-generation soundproofing for urban environments.",
+                "target_cpc": "G10K11/16",
+                "inspired_by": [],
+                "novelty_score": 0.74,
+            },
+            {
+                "title": "Edge-Computing Predictive Maintenance Mesh",
+                "description": "A distributed sensor network using edge ML inference to predict mechanical failures in industrial equipment, with peer-to-peer model updates eliminating cloud dependency.",
+                "rationale": "Combines IoT sensor patents nearing expiration with federated edge computing to enable real-time predictive maintenance without internet connectivity.",
+                "target_cpc": "G05B23/02",
+                "inspired_by": [],
+                "novelty_score": 0.72,
             },
         ]
         return templates[:count]

@@ -5,7 +5,7 @@ networks for prior art analysis.
 """
 from datetime import date
 
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_, or_, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -43,14 +43,14 @@ class SimilarityService:
         Uses cosine similarity on PatentSBERTa embeddings.
         Either patent_number or text_query must be provided.
         """
+        source_patent = None
         if patent_number:
+            source_patent = await self._get_patent(session, patent_number)
+            if not source_patent:
+                return []
             query_embedding = await self._get_patent_embedding(session, patent_number)
             if query_embedding is None:
-                # Generate embedding from patent text
-                patent = await self._get_patent(session, patent_number)
-                if not patent:
-                    return []
-                text = f"{patent.title} {patent.abstract or ''}"
+                text = f"{source_patent.title} {source_patent.abstract or ''}"
                 query_embedding = self.embedding_service.generate_embedding(text)
         elif text_query:
             query_embedding = self.embedding_service.generate_embedding(text_query)
@@ -70,7 +70,9 @@ class SimilarityService:
             conditions.append(Patent.country == country)
 
         if cpc_code:
-            conditions.append(Patent.cpc_codes.any(cpc_code))
+            conditions.append(
+                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_code}%")
+            )
 
         query = (
             select(Patent, similarity)
@@ -86,14 +88,12 @@ class SimilarityService:
         similar_patents = []
         source_assignee = None
 
-        if exclude_same_assignee and patent_number:
-            source_patent = await self._get_patent(session, patent_number)
-            if source_patent:
-                source_assignee = source_patent.assignee_organization
+        if exclude_same_assignee and source_patent:
+            source_assignee = source_patent.assignee_organization
 
         for row in rows:
             patent = row[0]
-            score = float(row[1]) if row[1] else 0.0
+            score = float(row[1]) if row[1] is not None else 0.0
 
             if score < min_score:
                 continue
@@ -267,7 +267,7 @@ class SimilarityService:
         results = []
         for row in rows:
             patent = row[0]
-            score = float(row[1]) if row[1] else 0.0
+            score = float(row[1]) if row[1] is not None else 0.0
             if score >= min_score:
                 results.append(self._to_similarity_result(patent, score))
 
@@ -361,9 +361,10 @@ class SimilarityService:
             Patent.assignee_organization != target.assignee_organization,
         ]
 
-        # Match any CPC prefix
+        # Match any CPC prefix using string matching for prefix support
         cpc_conditions = [
-            Patent.cpc_codes.any(prefix) for prefix in cpc_prefixes
+            func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{prefix}%")
+            for prefix in cpc_prefixes
         ]
         if cpc_conditions:
             conditions.append(or_(*cpc_conditions))

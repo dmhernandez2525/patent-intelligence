@@ -54,7 +54,7 @@ function Dashboard() {
               icon={<Clock className="h-5 w-5" />}
             />
             <ActionCard
-              to="/dashboard"
+              to="/trends"
               title="Trend Analysis"
               description="View technology trends and citation networks"
               icon={<TrendingUp className="h-5 w-5" />}

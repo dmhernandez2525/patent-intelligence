@@ -8,6 +8,11 @@ from src.models.patent import Patent
 from src.utils.logger import logger
 
 
+def _escape_like(value: str) -> str:
+    """Escape special characters for LIKE/ILIKE queries."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 class PatentSearchService:
     """Service for full-text, semantic, and hybrid patent search."""
 
@@ -36,11 +41,12 @@ class PatentSearchService:
 
         # Build the search query using ILIKE for broad matching
         # and ts_rank for ranking when available
+        escaped_query = _escape_like(query)
         search_condition = or_(
-            Patent.title.ilike(f"%{query}%"),
-            Patent.abstract.ilike(f"%{query}%"),
-            Patent.patent_number.ilike(f"%{query}%"),
-            Patent.assignee_organization.ilike(f"%{query}%"),
+            Patent.title.ilike(f"%{escaped_query}%"),
+            Patent.abstract.ilike(f"%{escaped_query}%"),
+            Patent.patent_number.ilike(f"%{escaped_query}%"),
+            Patent.assignee_organization.ilike(f"%{escaped_query}%"),
         )
 
         # Build base query with relevance scoring
@@ -77,7 +83,7 @@ class PatentSearchService:
         patents = []
         for row in rows:
             patent = row[0]
-            score = float(row[1]) if row[1] else 0.0
+            score = float(row[1]) if row[1] is not None else 0.0
             patents.append(self._patent_to_result(patent, score))
 
         return patents, total
@@ -99,8 +105,8 @@ class PatentSearchService:
         query_embedding = self.embedding_service.generate_embedding(query)
 
         # Build query with cosine distance
-        distance = Patent.embedding.cosine_distance(query_embedding).label("distance")
-        relevance = (1 - Patent.embedding.cosine_distance(query_embedding)).label("relevance_score")
+        distance = Patent.embedding.cosine_distance(query_embedding)
+        relevance = (1 - distance).label("relevance_score")
 
         base_query = (
             select(Patent, relevance)
@@ -124,7 +130,7 @@ class PatentSearchService:
         # Fetch nearest neighbors
         results_query = (
             base_query
-            .order_by(distance)
+            .order_by(Patent.embedding.cosine_distance(query_embedding))
             .offset(offset)
             .limit(per_page)
         )
@@ -135,7 +141,7 @@ class PatentSearchService:
         patents = []
         for row in rows:
             patent = row[0]
-            score = float(row[1]) if row[1] else 0.0
+            score = float(row[1]) if row[1] is not None else 0.0
             patents.append(self._patent_to_result(patent, max(0, score)))
 
         return patents, total
@@ -196,10 +202,12 @@ class PatentSearchService:
         offset = (page - 1) * per_page
         page_results = sorted_patents[offset:offset + per_page]
 
+        # Normalize RRF scores to [0, 1] range
+        max_rrf = sorted_patents[0][1] if sorted_patents else 1.0
         results = []
         for patent_num, score in page_results:
-            data = patent_data[patent_num]
-            data["relevance_score"] = round(score * 100, 4)  # Normalize score
+            data = patent_data[patent_num].copy()
+            data["relevance_score"] = round(score / max_rrf, 4) if max_rrf > 0 else 0.0
             results.append(data)
 
         total = len(rrf_scores)
@@ -216,7 +224,7 @@ class PatentSearchService:
             query = query.where(Patent.status == filters["status"])
         if filters.get("assignee"):
             query = query.where(
-                Patent.assignee_organization.ilike(f"%{filters['assignee']}%")
+                Patent.assignee_organization.ilike(f"%{_escape_like(filters['assignee'])}%")
             )
         if filters.get("cpc_codes"):
             # Check if any CPC code matches
