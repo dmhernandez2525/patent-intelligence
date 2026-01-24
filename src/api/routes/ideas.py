@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.schemas.ideas import IdeaRequest, IdeaResponse, SeedResponse
 from src.database.connection import get_session
 from src.services.idea_service import idea_service
 from src.utils.logger import logger
@@ -8,39 +9,36 @@ from src.utils.logger import logger
 router = APIRouter()
 
 
-@router.post("/generate")
+@router.post("/generate", response_model=IdeaResponse)
 async def generate_ideas(
-    cpc_prefix: str | None = Query(None),
-    focus: str = Query(default="expiring", pattern="^(expiring|combination|improvement)$"),
-    count: int = Query(default=5, ge=1, le=10),
-    context_text: str | None = Query(None),
+    request: IdeaRequest,
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> IdeaResponse:
     """Generate AI-powered invention ideas from patent landscape analysis."""
     logger.info(
         "ideas.generate",
-        cpc_prefix=cpc_prefix,
-        focus=focus,
-        count=count,
+        cpc_prefix=request.cpc_prefix,
+        focus=request.focus,
+        count=request.count,
     )
 
     result = await idea_service.generate_ideas(
         session,
-        cpc_prefix=cpc_prefix,
-        focus=focus,
-        count=count,
-        context_text=context_text,
+        cpc_prefix=request.cpc_prefix,
+        focus=request.focus,
+        count=request.count,
+        context_text=request.context_text,
     )
-    return result
+    return IdeaResponse(**result)
 
 
-@router.get("/seeds")
+@router.get("/seeds", response_model=SeedResponse)
 async def get_seeds(
     cpc_prefix: str | None = Query(None),
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> SeedResponse:
     """Get seed data for idea generation context (expiring patents, trends)."""
     logger.info("ideas.seeds", cpc_prefix=cpc_prefix)
 
     result = await idea_service.get_seeds(session, cpc_prefix=cpc_prefix)
-    return result
+    return SeedResponse(**result)

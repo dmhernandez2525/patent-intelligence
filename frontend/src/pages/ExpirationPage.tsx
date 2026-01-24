@@ -151,7 +151,9 @@ function ExpirationPage() {
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
                 <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gray-900">Search</Link>
-                <Link to="/ingestion" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ingestion</Link>
+                <Link to="/similarity" className="text-sm font-medium text-gray-600 hover:text-gray-900">Similarity</Link>
+                <Link to="/trends" className="text-sm font-medium text-gray-600 hover:text-gray-900">Trends</Link>
+                <Link to="/ideas" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ideas</Link>
               </nav>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Search, Clock, TrendingUp, Lightbulb, Zap } from 'lucide-react'
+import { Search, Clock, TrendingUp, Lightbulb, Zap, Sparkles } from 'lucide-react'
 
 function Dashboard() {
   return (
@@ -18,6 +18,9 @@ function Dashboard() {
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gray-900">Search</Link>
                 <Link to="/expiration" className="text-sm font-medium text-gray-600 hover:text-gray-900">Expiration</Link>
+                <Link to="/similarity" className="text-sm font-medium text-gray-600 hover:text-gray-900">Similarity</Link>
+                <Link to="/trends" className="text-sm font-medium text-gray-600 hover:text-gray-900">Trends</Link>
+                <Link to="/ideas" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ideas</Link>
               </nav>
             </div>
           </div>
@@ -40,7 +43,7 @@ function Dashboard() {
         {/* Quick Actions */}
         <div className="mt-8">
           <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <ActionCard
               to="/search"
               title="Search Patents"
@@ -58,6 +61,12 @@ function Dashboard() {
               title="Trend Analysis"
               description="View technology trends and citation networks"
               icon={<TrendingUp className="h-5 w-5" />}
+            />
+            <ActionCard
+              to="/ideas"
+              title="AI Ideas"
+              description="Generate invention ideas from patent landscape analysis"
+              icon={<Sparkles className="h-5 w-5" />}
             />
           </div>
         </div>

@@ -19,14 +19,18 @@ async def get_trends(
     """Get technology trend analysis based on patent filing patterns."""
     logger.info("analysis.trends", cpc_prefix=cpc_prefix, country=country, years=years)
 
-    result = await citation_service.get_technology_trends(
-        session,
-        cpc_prefix=cpc_prefix,
-        country=country,
-        years=years,
-        top_n=top_n,
-    )
-    return result
+    try:
+        result = await citation_service.get_technology_trends(
+            session,
+            cpc_prefix=cpc_prefix,
+            country=country,
+            years=years,
+            top_n=top_n,
+        )
+        return result
+    except Exception as e:
+        logger.error("analysis.trends_failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to compute technology trends")
 
 
 @router.get("/citations/{patent_number}")

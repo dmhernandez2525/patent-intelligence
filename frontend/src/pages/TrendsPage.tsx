@@ -145,8 +145,9 @@ function TrendsPage() {
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
                 <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gray-900">Search</Link>
-                <Link to="/similarity" className="text-sm font-medium text-gray-600 hover:text-gray-900">Similarity</Link>
                 <Link to="/expiration" className="text-sm font-medium text-gray-600 hover:text-gray-900">Expiration</Link>
+                <Link to="/similarity" className="text-sm font-medium text-gray-600 hover:text-gray-900">Similarity</Link>
+                <Link to="/ideas" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ideas</Link>
               </nav>
             </div>
           </div>
