@@ -111,6 +111,8 @@ function SimilarityPage() {
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
                 <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gray-900">Search</Link>
                 <Link to="/expiration" className="text-sm font-medium text-gray-600 hover:text-gray-900">Expiration</Link>
+                <Link to="/trends" className="text-sm font-medium text-gray-600 hover:text-gray-900">Trends</Link>
+                <Link to="/ideas" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ideas</Link>
               </nav>
             </div>
           </div>

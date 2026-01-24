@@ -68,10 +68,10 @@ function IdeasPage() {
 
   const generateMutation = useMutation<IdeaResponse>({
     mutationFn: async () => {
-      const params: Record<string, string | number> = { focus, count }
-      if (cpcPrefix) params.cpc_prefix = cpcPrefix
-      if (contextText) params.context_text = contextText
-      const resp = await api.post('/ideas/generate', null, { params })
+      const body: Record<string, string | number> = { focus, count }
+      if (cpcPrefix) body.cpc_prefix = cpcPrefix
+      if (contextText) body.context_text = contextText
+      const resp = await api.post('/ideas/generate', body)
       return resp.data
     },
   })
@@ -96,6 +96,7 @@ function IdeasPage() {
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
                 <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gray-900">Search</Link>
+                <Link to="/expiration" className="text-sm font-medium text-gray-600 hover:text-gray-900">Expiration</Link>
                 <Link to="/similarity" className="text-sm font-medium text-gray-600 hover:text-gray-900">Similarity</Link>
                 <Link to="/trends" className="text-sm font-medium text-gray-600 hover:text-gray-900">Trends</Link>
               </nav>
