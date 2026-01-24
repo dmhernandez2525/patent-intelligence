@@ -1,7 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
+from src.database.connection import get_session
+from src.services.stats_service import stats_service
 
 router = APIRouter()
 
@@ -59,3 +62,19 @@ async def detailed_health_check() -> DetailedHealthResponse:
         redis=redis_status,
         celery=celery_status,
     )
+
+
+@router.get("/stats")
+async def get_dashboard_stats(
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    """Get dashboard statistics for the frontend."""
+    return await stats_service.get_dashboard_stats(session)
+
+
+@router.get("/status")
+async def get_system_status(
+    session: AsyncSession = Depends(get_session),
+) -> dict:
+    """Get system component status."""
+    return await stats_service.get_system_status(session)

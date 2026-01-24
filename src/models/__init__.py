@@ -8,8 +8,10 @@ from src.models.patent import (
     PatentFamilyMember,
 )
 from src.models.ingestion import IngestionJob, IngestionCheckpoint
+from src.models.watchlist import Alert, WatchlistItem
 
 __all__ = [
+    "Alert",
     "Base",
     "Citation",
     "IngestionCheckpoint",
@@ -19,4 +21,5 @@ __all__ = [
     "PatentClaim",
     "PatentFamily",
     "PatentFamilyMember",
+    "WatchlistItem",
 ]
