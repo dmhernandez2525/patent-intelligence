@@ -5,13 +5,18 @@ from src.models.patent import (
     Patent,
     PatentClaim,
     PatentFamily,
+    PatentFamilyMember,
 )
+from src.models.ingestion import IngestionJob, IngestionCheckpoint
 
 __all__ = [
     "Base",
     "Citation",
+    "IngestionCheckpoint",
+    "IngestionJob",
     "MaintenanceFee",
     "Patent",
     "PatentClaim",
     "PatentFamily",
+    "PatentFamilyMember",
 ]
