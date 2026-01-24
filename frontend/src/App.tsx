@@ -7,6 +7,7 @@ import SimilarityPage from './pages/SimilarityPage'
 import TrendsPage from './pages/TrendsPage'
 import IdeasPage from './pages/IdeasPage'
 import WhiteSpacePage from './pages/WhiteSpacePage'
+import WatchlistPage from './pages/WatchlistPage'
 import IngestionPage from './pages/IngestionPage'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       <Route path="/trends" element={<TrendsPage />} />
       <Route path="/ideas" element={<IdeasPage />} />
       <Route path="/whitespace" element={<WhiteSpacePage />} />
+      <Route path="/watchlist" element={<WatchlistPage />} />
       <Route path="/ingestion" element={<IngestionPage />} />
     </Routes>
   )

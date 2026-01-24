@@ -1,7 +1,59 @@
 import { Link } from 'react-router-dom'
-import { Search, Clock, TrendingUp, Lightbulb, Zap, Sparkles, Map } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { Search, Clock, TrendingUp, Zap, Sparkles, Map, Eye, Bell } from 'lucide-react'
+import { api } from '../lib/api'
+
+interface DashboardStats {
+  patents: {
+    total: number
+    expiring_90_days: number
+  }
+  trends: {
+    top_cpc: { cpc_code: string; count: number }[]
+  }
+  watchlist: {
+    count: number
+    unread_alerts: number
+  }
+}
+
+interface SystemStatus {
+  api_server: string
+  database: string
+  uspto_ingestion: string
+  epo_integration: string
+  embedding_service: string
+}
 
 function Dashboard() {
+  const statsQuery = useQuery<DashboardStats>({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const resp = await api.get('/stats')
+      return resp.data
+    },
+    refetchInterval: 60000, // Refresh every minute
+  })
+
+  const statusQuery = useQuery<SystemStatus>({
+    queryKey: ['system-status'],
+    queryFn: async () => {
+      const resp = await api.get('/status')
+      return resp.data
+    },
+    refetchInterval: 30000,
+  })
+
+  const stats = statsQuery.data
+  const status = statusQuery.data
+
+  const formatNumber = (n: number | undefined) => {
+    if (n === undefined) return '--'
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+    return n.toString()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -22,6 +74,14 @@ function Dashboard() {
                 <Link to="/trends" className="text-sm font-medium text-gray-600 hover:text-gray-900">Trends</Link>
                 <Link to="/whitespace" className="text-sm font-medium text-gray-600 hover:text-gray-900">White Space</Link>
                 <Link to="/ideas" className="text-sm font-medium text-gray-600 hover:text-gray-900">Ideas</Link>
+                <Link to="/watchlist" className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1">
+                  Watchlist
+                  {stats?.watchlist?.unread_alerts ? (
+                    <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                      {stats.watchlist.unread_alerts}
+                    </span>
+                  ) : null}
+                </Link>
               </nav>
             </div>
           </div>
@@ -35,10 +95,30 @@ function Dashboard() {
 
         {/* Stats Grid */}
         <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={<Search className="h-5 w-5" />} label="Total Patents" value="0" change="Data ingestion pending" />
-          <StatCard icon={<Clock className="h-5 w-5" />} label="Expiring Soon" value="0" change="Within 90 days" />
-          <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Trending CPCs" value="--" change="Analysis pending" />
-          <StatCard icon={<Lightbulb className="h-5 w-5" />} label="Ideas Generated" value="0" change="AI-powered" />
+          <StatCard
+            icon={<Search className="h-5 w-5" />}
+            label="Total Patents"
+            value={formatNumber(stats?.patents?.total)}
+            change={stats?.patents?.total ? 'In database' : 'Data ingestion pending'}
+          />
+          <StatCard
+            icon={<Clock className="h-5 w-5" />}
+            label="Expiring Soon"
+            value={formatNumber(stats?.patents?.expiring_90_days)}
+            change="Within 90 days"
+          />
+          <StatCard
+            icon={<TrendingUp className="h-5 w-5" />}
+            label="Top CPC"
+            value={stats?.trends?.top_cpc?.[0]?.cpc_code || '--'}
+            change={stats?.trends?.top_cpc?.[0]?.count ? `${formatNumber(stats.trends.top_cpc[0].count)} patents` : 'Analysis pending'}
+          />
+          <StatCard
+            icon={<Bell className="h-5 w-5" />}
+            label="Watchlist Alerts"
+            value={formatNumber(stats?.watchlist?.unread_alerts)}
+            change={`${stats?.watchlist?.count || 0} items tracked`}
+          />
         </div>
 
         {/* Quick Actions */}
@@ -48,7 +128,7 @@ function Dashboard() {
             <ActionCard
               to="/search"
               title="Search Patents"
-              description="Search 200M+ patents using semantic or keyword search"
+              description="Search patents using semantic or keyword search"
               icon={<Search className="h-5 w-5" />}
             />
             <ActionCard
@@ -75,6 +155,12 @@ function Dashboard() {
               description="Generate invention ideas from patent landscape analysis"
               icon={<Sparkles className="h-5 w-5" />}
             />
+            <ActionCard
+              to="/watchlist"
+              title="Watchlist"
+              description="Track patents and get alerts for expirations"
+              icon={<Eye className="h-5 w-5" />}
+            />
           </div>
         </div>
 
@@ -82,11 +168,11 @@ function Dashboard() {
         <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-gray-900">System Status</h2>
           <div className="mt-4 space-y-3">
-            <StatusRow label="API Server" status="operational" />
-            <StatusRow label="Database" status="operational" />
-            <StatusRow label="USPTO Ingestion" status="pending" />
-            <StatusRow label="EPO Integration" status="pending" />
-            <StatusRow label="Embedding Service" status="pending" />
+            <StatusRow label="API Server" status={status?.api_server || 'pending'} />
+            <StatusRow label="Database" status={status?.database || 'pending'} />
+            <StatusRow label="USPTO Ingestion" status={status?.uspto_ingestion || 'pending'} />
+            <StatusRow label="EPO Integration" status={status?.epo_integration || 'pending'} />
+            <StatusRow label="Embedding Service" status={status?.embedding_service || 'pending'} />
           </div>
         </div>
       </main>
@@ -128,18 +214,21 @@ function ActionCard({ to, title, description, icon }: { to: string; title: strin
   )
 }
 
-function StatusRow({ label, status }: { label: string; status: 'operational' | 'pending' | 'error' }) {
-  const statusColors = {
+function StatusRow({ label, status }: { label: string; status: string }) {
+  const statusColors: Record<string, string> = {
     operational: 'bg-green-500',
+    healthy: 'bg-green-500',
     pending: 'bg-yellow-400',
+    unknown: 'bg-gray-400',
     error: 'bg-red-500',
+    unhealthy: 'bg-red-500',
   }
 
   return (
     <div className="flex items-center justify-between">
       <span className="text-sm text-gray-700">{label}</span>
       <div className="flex items-center gap-2">
-        <div className={`h-2 w-2 rounded-full ${statusColors[status]}`} />
+        <div className={`h-2 w-2 rounded-full ${statusColors[status] || 'bg-gray-400'}`} />
         <span className="text-xs text-gray-500 capitalize">{status}</span>
       </div>
     </div>
