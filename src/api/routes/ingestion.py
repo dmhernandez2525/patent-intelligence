@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -80,7 +80,10 @@ async def trigger_ingestion(
 
         since = None
         if request.since_date:
-            since = datetime.strptime(request.since_date, "%Y-%m-%d")
+            try:
+                since = datetime.strptime(request.since_date, "%Y-%m-%d")
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid since_date format")
 
         task = ingest_patents_task.delay(
             source=request.source,
@@ -89,7 +92,7 @@ async def trigger_ingestion(
         )
         job.celery_task_id = task.id
         job.status = "running"
-        job.started_at = datetime.utcnow()
+        job.started_at = datetime.now(timezone.utc)
     except Exception as e:
         job.status = "failed"
         job.error_message = str(e)
