@@ -39,6 +39,9 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
         if source == "uspto":
             from src.ingesters.uspto_ingester import USPTOIngester
             ingester = USPTOIngester()
+        elif source == "epo":
+            from src.ingesters.epo_ingester import EPOIngester
+            ingester = EPOIngester()
         else:
             raise ValueError(f"Unknown source: {source}")
 

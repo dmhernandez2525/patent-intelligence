@@ -30,14 +30,15 @@ interface IngestionStatus {
 }
 
 function IngestionPage() {
+  const [source, setSource] = useState<'uspto' | 'epo'>('uspto')
   const [batchSize, setBatchSize] = useState(100)
   const [maxPatents, setMaxPatents] = useState(1000)
   const queryClient = useQueryClient()
 
   const { data: status, isLoading } = useQuery<IngestionStatus>({
-    queryKey: ['ingestion-status'],
+    queryKey: ['ingestion-status', source],
     queryFn: async () => {
-      const resp = await api.get('/ingestion/status?source=uspto')
+      const resp = await api.get(`/ingestion/status?source=${source}`)
       return resp.data
     },
     refetchInterval: 5000,
@@ -46,7 +47,7 @@ function IngestionPage() {
   const triggerMutation = useMutation({
     mutationFn: async () => {
       const resp = await api.post('/ingestion/trigger', {
-        source: 'uspto',
+        source,
         batch_size: batchSize,
         max_patents: maxPatents,
       })
@@ -92,7 +93,7 @@ function IngestionPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Data Ingestion</h1>
             <p className="mt-1 text-sm text-gray-600">
-              Manage patent data ingestion from USPTO PatentsView API.
+              Manage patent data ingestion from USPTO PatentsView and EPO Open Patent Services.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -107,9 +108,20 @@ function IngestionPage() {
         <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-gray-900">Trigger Ingestion</h2>
           <p className="mt-1 text-sm text-gray-600">
-            Start a new patent data ingestion job from the USPTO PatentsView API.
+            Start a new patent data ingestion job from the selected data source.
           </p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Data Source</label>
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value as 'uspto' | 'epo')}
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              >
+                <option value="uspto">USPTO (United States)</option>
+                <option value="epo">EPO (Europe, 90+ countries)</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Batch Size</label>
               <input
