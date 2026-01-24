@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Zap, Database, Play, RefreshCw, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react'
+import { Zap, Database, Play, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react'
 import { api } from '../lib/api'
 
 interface IngestionJob {

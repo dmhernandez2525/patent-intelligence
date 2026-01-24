@@ -21,10 +21,14 @@ class SearchResultItem(BaseModel):
     title: str
     abstract: str | None = None
     filing_date: date | None = None
+    grant_date: date | None = None
+    expiration_date: date | None = None
     assignee_organization: str | None = None
+    inventors: list[str] | None = None
     cpc_codes: list[str] | None = None
     status: str
     country: str
+    citation_count: int | None = None
     relevance_score: float = 0.0
 
     model_config = {"from_attributes": True}

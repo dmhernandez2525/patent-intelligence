@@ -33,10 +33,14 @@ export interface SearchResult {
   title: string
   abstract: string | null
   filing_date: string | null
+  grant_date: string | null
+  expiration_date: string | null
   assignee_organization: string | null
+  inventors: string[] | null
   cpc_codes: string[] | null
   status: string
   country: string
+  citation_count: number | null
   relevance_score: number
 }
 
