@@ -414,7 +414,7 @@ function TrendsPage() {
 
                 {/* Network Nodes by Depth */}
                 {[0, 1, 2, 3].map((d) => {
-                  const nodesAtDepth = citationMutation.data!.nodes.filter((n) => n.depth === d)
+                  const nodesAtDepth = (citationMutation.data?.nodes ?? []).filter((n) => n.depth === d)
                   if (nodesAtDepth.length === 0) return null
                   return (
                     <div key={d}>

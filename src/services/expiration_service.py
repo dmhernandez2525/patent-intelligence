@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_, or_, case
+from sqlalchemy import select, func, and_, or_, case, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -35,7 +35,9 @@ class ExpirationService:
         if country:
             conditions.append(Patent.country == country)
         if cpc_code:
-            conditions.append(Patent.cpc_codes.any(cpc_code))
+            conditions.append(
+                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_code}%")
+            )
         if assignee:
             conditions.append(Patent.assignee_organization.ilike(f"%{assignee}%"))
 
@@ -92,7 +94,9 @@ class ExpirationService:
         if country:
             conditions.append(Patent.country == country)
         if cpc_code:
-            conditions.append(Patent.cpc_codes.any(cpc_code))
+            conditions.append(
+                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_code}%")
+            )
         if assignee:
             conditions.append(Patent.assignee_organization.ilike(f"%{assignee}%"))
 

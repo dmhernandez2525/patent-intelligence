@@ -22,11 +22,23 @@ celery_app.conf.update(
 )
 
 
+def _run_async(coro):
+    """Run an async coroutine in a way compatible with Celery workers."""
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            return pool.submit(asyncio.run, coro).result()
+    return asyncio.run(coro)
+
+
 @celery_app.task(name="pipeline.ingest_patents", bind=True)
 def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: int | None = None):
     """Background task for patent ingestion with database storage."""
-    import asyncio
-    from datetime import datetime
     from src.utils.logger import logger
 
     logger.info("task.ingest_patents.started", source=source, task_id=self.request.id)
@@ -90,7 +102,7 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
             "total_errors": total_errors,
         }
 
-    result = asyncio.run(_run())
+    result = _run_async(_run())
 
     logger.info(
         "task.ingest_patents.completed",
@@ -106,7 +118,6 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
 @celery_app.task(name="pipeline.generate_embeddings", bind=True)
 def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_size: int = 32):
     """Background task for generating patent embeddings."""
-    import asyncio
     from src.utils.logger import logger
 
     logger.info("task.generate_embeddings.started", task_id=self.request.id)
@@ -131,5 +142,5 @@ def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_si
 
         return total_processed
 
-    processed = asyncio.run(_run())
+    processed = _run_async(_run())
     return {"status": "completed", "processed": processed}
