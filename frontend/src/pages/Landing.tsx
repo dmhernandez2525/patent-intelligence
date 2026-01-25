@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Search, Clock, Lightbulb, TrendingUp, Shield, Zap } from 'lucide-react'
+import { Search, Clock, Lightbulb, TrendingUp, Shield, Zap, Map, Eye, Bell, Database, Globe, Cpu } from 'lucide-react'
 
 function Landing() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
-      <nav className="border-b border-gray-200 bg-white">
+      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
@@ -14,10 +14,13 @@ function Landing() {
               </div>
               <span className="text-xl font-bold text-gray-900">Patent Intelligence</span>
             </div>
+            <div className="hidden md:flex items-center gap-6">
+              <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900">Features</a>
+              <a href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900">How It Works</a>
+              <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900">Pricing</a>
+              <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
+            </div>
             <div className="flex items-center gap-4">
-              <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-                Dashboard
-              </Link>
               <Link
                 to="/search"
                 className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
@@ -33,20 +36,22 @@ function Landing() {
       <section className="relative overflow-hidden bg-gradient-to-b from-primary-50 to-white py-20 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-6 inline-flex items-center rounded-full bg-primary-100 px-4 py-1.5 text-sm font-medium text-primary-700">
+              AI-Powered Patent Intelligence Platform
+            </div>
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
               Discover What's Expiring, What's Missing, and What's Next
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              AI-powered patent intelligence for innovators. Search 200M+ patents globally,
-              track expirations, find white space opportunities, and generate invention ideas
-              — at a fraction of enterprise pricing.
+              Search 200M+ patents globally, track expirations, discover white space opportunities,
+              and generate AI-powered invention ideas — all in one platform built for innovators.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-4">
+            <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
               <Link
                 to="/search"
                 className="rounded-lg bg-primary-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-primary-700 transition-colors"
               >
-                Start Searching
+                Start Searching Free
               </Link>
               <Link
                 to="/dashboard"
@@ -57,68 +62,151 @@ function Landing() {
             </div>
           </div>
         </div>
+
+        {/* Floating Feature Pills */}
+        <div className="mt-16 flex flex-wrap justify-center gap-3 px-4">
+          {['Semantic Search', 'Expiration Alerts', 'White Space Discovery', 'AI Ideas', 'Citation Networks', 'Multi-Source Data'].map((feature) => (
+            <span key={feature} className="rounded-full bg-white border border-gray-200 px-4 py-2 text-sm text-gray-700 shadow-sm">
+              {feature}
+            </span>
+          ))}
+        </div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-20 sm:py-28">
+      <section id="features" className="py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Patent Intelligence That Works For You
+              Complete Patent Intelligence Suite
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Comprehensive tools for patent search, analysis, and opportunity discovery.
+              Every tool you need to find, analyze, and act on patent opportunities.
             </p>
           </div>
-          <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-auto mt-16 grid max-w-6xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               icon={<Search className="h-6 w-6" />}
-              title="Semantic Search"
-              description="AI-powered patent search using PatentSBERTa embeddings. Find relevant patents by meaning, not just keywords."
+              title="Semantic Patent Search"
+              description="AI-powered search using PatentSBERTa embeddings. Find relevant patents by meaning, not just keywords. Hybrid search combines vector similarity with traditional filters."
+              link="/search"
             />
             <FeatureCard
               icon={<Clock className="h-6 w-6" />}
               title="Expiration Tracking"
-              description="Real-time monitoring of patent expirations, maintenance fees, and lapsed patents. Never miss an opportunity."
+              description="Real-time monitoring of patent expirations, maintenance fees, and lapsed patents. Get alerts before deadlines and discover newly available technologies."
+              link="/expiration"
+            />
+            <FeatureCard
+              icon={<Map className="h-6 w-6" />}
+              title="White Space Discovery"
+              description="Identify technology gaps and untapped opportunities. Analyze CPC coverage, find declining sectors, and discover cross-domain combination opportunities."
+              link="/whitespace"
             />
             <FeatureCard
               icon={<Lightbulb className="h-6 w-6" />}
-              title="Idea Generation"
-              description="LLM-powered invention suggestions based on expiring patents, technology gaps, and patent combinations."
+              title="AI Idea Generation"
+              description="LLM-powered invention suggestions from expiring patents, technology trends, and cross-domain combinations. Generate novel, commercially viable concepts."
+              link="/ideas"
             />
             <FeatureCard
               icon={<TrendingUp className="h-6 w-6" />}
               title="Trend Analysis"
-              description="Technology trajectory mapping, CPC-based trends, and citation network analysis for strategic planning."
+              description="Technology trajectory mapping with CPC-based trends, filing patterns, and growth areas. Visualize citation networks and identify influential patents."
+              link="/trends"
             />
             <FeatureCard
               icon={<Shield className="h-6 w-6" />}
               title="Prior Art Discovery"
-              description="Vector-based similarity search for prior art candidates. Understand the landscape before filing."
+              description="Vector-based similarity search for prior art candidates. Find similar patents across jurisdictions and understand the landscape before filing."
+              link="/similarity"
             />
             <FeatureCard
-              icon={<Zap className="h-6 w-6" />}
-              title="White Space Analysis"
-              description="Identify gaps in patent coverage and innovation opportunities that competitors have missed."
+              icon={<Eye className="h-6 w-6" />}
+              title="Patent Watchlist"
+              description="Track patents, CPC codes, and assignees you care about. Get automatic alerts for expirations, maintenance fees, and status changes."
+              link="/watchlist"
+            />
+            <FeatureCard
+              icon={<Bell className="h-6 w-6" />}
+              title="Smart Alerts"
+              description="Configurable notifications for expiring patents, upcoming maintenance fees, and new activity. Priority-based alert system keeps you focused on what matters."
+              link="/watchlist"
+            />
+            <FeatureCard
+              icon={<Database className="h-6 w-6" />}
+              title="Multi-Source Ingestion"
+              description="Unified data from USPTO, EPO, and BigQuery. 200M+ patents from 170+ jurisdictions, continuously updated with latest filings."
+              link="/ingestion"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="border-y border-gray-200 bg-gray-50 py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              How It Works
+            </h2>
+            <p className="mt-4 text-lg text-gray-600">
+              From search to strategy in minutes, not months.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <StepCard
+              number="1"
+              title="Search"
+              description="Use semantic or keyword search to find relevant patents across our 200M+ patent database."
+            />
+            <StepCard
+              number="2"
+              title="Analyze"
+              description="Explore trends, citation networks, and similar patents. Understand the technology landscape."
+            />
+            <StepCard
+              number="3"
+              title="Discover"
+              description="Find white space opportunities, expiring patents, and technology gaps using AI-powered analysis."
+            />
+            <StepCard
+              number="4"
+              title="Act"
+              description="Generate invention ideas, track key patents, and get alerts for opportunities that matter."
             />
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="border-y border-gray-200 bg-gray-50 py-16">
+      <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-            <StatItem value="200M+" label="Global Patents" />
-            <StatItem value="170+" label="Jurisdictions" />
-            <StatItem value="50%" label="Patents Lapse" />
-            <StatItem value="$49/mo" label="Starting Price" />
+            <StatItem value="200M+" label="Global Patents" icon={<Database className="h-5 w-5" />} />
+            <StatItem value="170+" label="Jurisdictions" icon={<Globe className="h-5 w-5" />} />
+            <StatItem value="50%" label="Patents Lapse" icon={<Clock className="h-5 w-5" />} />
+            <StatItem value="AI" label="Powered Analysis" icon={<Cpu className="h-5 w-5" />} />
+          </div>
+        </div>
+      </section>
+
+      {/* Tech Stack */}
+      <section className="border-y border-gray-200 bg-white py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h3 className="text-lg font-semibold text-gray-900">Built With Modern Technology</h3>
+          </div>
+          <div className="flex flex-wrap justify-center gap-8 items-center opacity-70">
+            {['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'pgvector', 'Redis', 'Claude AI', 'PatentSBERTa'].map((tech) => (
+              <span key={tech} className="text-sm font-medium text-gray-600">{tech}</span>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20">
+      <section id="pricing" className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -133,21 +221,47 @@ function Landing() {
               tier="Starter"
               price="$49"
               description="For solo practitioners and researchers"
-              features={["1,000 searches/month", "Expiration tracking", "Basic export (10K)", "API access"]}
+              features={["1,000 searches/month", "Expiration tracking", "5 watchlist items", "Basic export", "API access"]}
             />
             <PricingCard
               tier="Professional"
               price="$199"
               description="For small firms and startups"
-              features={["10,000 searches/month", "AI idea generation", "White space analysis", "Priority support", "Export (100K)"]}
+              features={["10,000 searches/month", "AI idea generation", "White space analysis", "50 watchlist items", "Priority support"]}
               highlighted
             />
             <PricingCard
               tier="Enterprise"
               price="$799"
               description="For corporate IP teams"
-              features={["Unlimited searches", "Custom integrations", "Team collaboration", "Dedicated support", "Unlimited export"]}
+              features={["Unlimited searches", "Custom integrations", "Unlimited watchlist", "Team collaboration", "Dedicated support"]}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-primary-600 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-white">Ready to discover patent opportunities?</h2>
+            <p className="mt-4 text-lg text-primary-100">
+              Start searching now — no credit card required.
+            </p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Link
+                to="/search"
+                className="rounded-lg bg-white px-6 py-3 text-base font-semibold text-primary-600 shadow-sm hover:bg-primary-50 transition-colors"
+              >
+                Get Started Free
+              </Link>
+              <Link
+                to="/dashboard"
+                className="rounded-lg border border-primary-300 px-6 py-3 text-base font-semibold text-white hover:bg-primary-500 transition-colors"
+              >
+                Explore Dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -155,15 +269,47 @@ function Landing() {
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-white py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-primary-600 flex items-center justify-center">
-                <Zap className="h-4 w-4 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded bg-primary-600 flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-sm font-semibold text-gray-900">Patent Intelligence</span>
               </div>
-              <span className="text-sm font-semibold text-gray-900">Patent Intelligence</span>
+              <p className="mt-4 text-sm text-gray-500">
+                AI-powered patent intelligence for innovators, researchers, and IP professionals.
+              </p>
             </div>
-            <p className="text-sm text-gray-500">
-              Patent intelligence that doesn't require a patent lawyer's budget.
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900">Product</h4>
+              <ul className="mt-4 space-y-2">
+                <li><Link to="/search" className="text-sm text-gray-500 hover:text-gray-900">Search</Link></li>
+                <li><Link to="/expiration" className="text-sm text-gray-500 hover:text-gray-900">Expiration Tracker</Link></li>
+                <li><Link to="/whitespace" className="text-sm text-gray-500 hover:text-gray-900">White Space</Link></li>
+                <li><Link to="/ideas" className="text-sm text-gray-500 hover:text-gray-900">AI Ideas</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900">Analysis</h4>
+              <ul className="mt-4 space-y-2">
+                <li><Link to="/trends" className="text-sm text-gray-500 hover:text-gray-900">Trends</Link></li>
+                <li><Link to="/similarity" className="text-sm text-gray-500 hover:text-gray-900">Similarity</Link></li>
+                <li><Link to="/watchlist" className="text-sm text-gray-500 hover:text-gray-900">Watchlist</Link></li>
+                <li><Link to="/dashboard" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900">Resources</h4>
+              <ul className="mt-4 space-y-2">
+                <li><a href="/api/docs" className="text-sm text-gray-500 hover:text-gray-900">API Docs</a></li>
+                <li><a href="https://github.com/dmhernandez2525/patent-intelligence" className="text-sm text-gray-500 hover:text-gray-900">GitHub</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 border-t border-gray-200 pt-8">
+            <p className="text-center text-sm text-gray-500">
+              Built with React, FastAPI, PostgreSQL, and AI. Patent Intelligence Platform.
             </p>
           </div>
         </div>
@@ -172,11 +318,23 @@ function Landing() {
   )
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function FeatureCard({ icon, title, description, link }: { icon: React.ReactNode; title: string; description: string; link: string }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
+    <Link to={link} className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-primary-200 transition-all">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors">
         {icon}
+      </div>
+      <h3 className="mt-4 text-lg font-semibold text-gray-900 group-hover:text-primary-600">{title}</h3>
+      <p className="mt-2 text-sm text-gray-600">{description}</p>
+    </Link>
+  )
+}
+
+function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
+  return (
+    <div className="text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white text-lg font-bold">
+        {number}
       </div>
       <h3 className="mt-4 text-lg font-semibold text-gray-900">{title}</h3>
       <p className="mt-2 text-sm text-gray-600">{description}</p>
@@ -184,10 +342,11 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode; titl
   )
 }
 
-function StatItem({ value, label }: { value: string; label: string }) {
+function StatItem({ value, label, icon }: { value: string; label: string; icon: React.ReactNode }) {
   return (
     <div className="text-center">
-      <p className="text-3xl font-bold text-primary-600">{value}</p>
+      <div className="flex justify-center text-primary-600 mb-2">{icon}</div>
+      <p className="text-3xl font-bold text-gray-900">{value}</p>
       <p className="mt-1 text-sm text-gray-600">{label}</p>
     </div>
   )
@@ -214,6 +373,11 @@ function PricingCard({
           : 'border-gray-200 bg-white shadow-sm'
       }`}
     >
+      {highlighted && (
+        <span className="inline-block rounded-full bg-primary-600 px-3 py-1 text-xs font-semibold text-white mb-4">
+          Most Popular
+        </span>
+      )}
       <h3 className="text-lg font-semibold text-gray-900">{tier}</h3>
       <p className="mt-1 text-sm text-gray-600">{description}</p>
       <p className="mt-4">
