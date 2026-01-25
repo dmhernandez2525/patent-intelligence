@@ -240,6 +240,71 @@ function Landing() {
         </div>
       </section>
 
+      {/* Coming Soon Section */}
+      <section className="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-purple-200 mb-6">
+              Coming Soon
+            </span>
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Voice Patent Research
+            </h2>
+            <p className="mt-4 text-lg text-purple-200">
+              Search, analyze, and explore patents with natural voice conversation. Powered by PersonaPlex full duplex AI.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
+            <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+              <h3 className="text-lg font-semibold text-purple-300 mb-4">Current Experience</h3>
+              <ul className="space-y-2 text-sm text-purple-200/70">
+                <li>• Type search queries manually</li>
+                <li>• Click through results one by one</li>
+                <li>• Read patent abstracts on screen</li>
+                <li>• Type notes separately</li>
+              </ul>
+            </div>
+            <div className="rounded-xl bg-purple-500/20 border border-purple-400/30 p-6">
+              <h3 className="text-lg font-semibold text-purple-300 mb-4">With PersonaPlex</h3>
+              <div className="space-y-3 text-sm">
+                <div className="bg-black/20 rounded-lg px-3 py-2">
+                  <span className="text-purple-300">You:</span>{" "}
+                  <span className="text-white/80">"Show EV battery patents expiring soon"</span>
+                </div>
+                <div className="bg-purple-600/30 rounded-lg px-3 py-2">
+                  <span className="text-purple-300">PersonaPlex:</span>{" "}
+                  <span className="text-white/90">"Found 142 patents. Top one is from Tesla..."</span>
+                </div>
+                <div className="bg-black/20 rounded-lg px-3 py-2">
+                  <span className="text-purple-300">You:</span>{" "}
+                  <span className="text-white/80">"What's the white space here?"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto text-center">
+            <div className="p-4">
+              <p className="text-2xl font-bold text-purple-300">&lt;500ms</p>
+              <p className="text-xs text-purple-200/70">Response Time</p>
+            </div>
+            <div className="p-4">
+              <p className="text-2xl font-bold text-purple-300">Full Duplex</p>
+              <p className="text-xs text-purple-200/70">Natural Conversation</p>
+            </div>
+            <div className="p-4">
+              <p className="text-2xl font-bold text-purple-300">100%</p>
+              <p className="text-xs text-purple-200/70">Local Processing</p>
+            </div>
+            <div className="p-4">
+              <p className="text-2xl font-bold text-purple-300">Hands-Free</p>
+              <p className="text-xs text-purple-200/70">Voice Control</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="bg-primary-600 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
