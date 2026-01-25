@@ -367,6 +367,46 @@ docker compose -f docker-compose.prod.yml up -d
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+---
+
+## Coming Soon: Voice Patent Research
+
+**Powered by PersonaPlex Full Duplex AI**
+
+Transform how you research patents with natural voice conversation. Ask questions, explore results, and navigate the patent landscape hands-free.
+
+### Current Experience
+```
+Type search query → Click search → Read results → Click patent → Type new query
+```
+
+### With PersonaPlex
+```
+You: "Show me patents for electric vehicle battery cooling"
+PersonaPlex: "Found 2,340 results. Want me to filter by expiration date or assignee?"
+You: "Show ones expiring in the next 2 years"
+PersonaPlex: "142 patents expiring soon. The top one is from Tesla, filed in 2017..."
+You: "What's the white space in this area?"
+PersonaPlex: "I see gaps in thermal management for solid-state batteries. Want me to generate invention ideas?"
+```
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Voice Search** | Search patents by speaking naturally |
+| **Conversational Navigation** | Ask follow-up questions to refine results |
+| **Hands-Free Analysis** | Have patents read aloud while you work |
+| **Voice Alerts** | Get spoken updates on watched patents |
+| **Idea Dictation** | Capture invention ideas by voice |
+
+### Technical Requirements
+
+- 24GB+ VRAM (Mac M2 Pro or higher)
+- 32GB RAM recommended
+- Runs 100% locally - no cloud required
+- <500ms response time
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
