@@ -356,6 +356,10 @@ class SimilarityService:
         # Get top-level CPC sections (first 4 chars)
         cpc_prefixes = list({code[:4] for code in target.cpc_codes if len(code) >= 4})[:3]
 
+        # Return early if no valid CPC prefixes after filtering
+        if not cpc_prefixes:
+            return []
+
         conditions = [
             Patent.assignee_organization.isnot(None),
             Patent.assignee_organization != target.assignee_organization,
@@ -366,8 +370,7 @@ class SimilarityService:
             func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{prefix}%")
             for prefix in cpc_prefixes
         ]
-        if cpc_conditions:
-            conditions.append(or_(*cpc_conditions))
+        conditions.append(or_(*cpc_conditions))
 
         query = (
             select(

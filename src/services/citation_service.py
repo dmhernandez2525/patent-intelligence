@@ -245,6 +245,7 @@ class CitationService:
         """Get top CPC codes with yearly breakdown."""
         conditions = [
             extract("year", Patent.filing_date) >= start_year,
+            extract("year", Patent.filing_date) <= end_year,
             Patent.filing_date.isnot(None),
             Patent.cpc_codes.isnot(None),
         ]
@@ -257,6 +258,7 @@ class CitationService:
         top_query = (
             select(cpc_unnest, func.count(Patent.id).label("total"))
             .where(and_(*conditions))
+            .group_by("cpc_code")
         )
 
         if cpc_prefix:
@@ -266,7 +268,6 @@ class CitationService:
 
         top_query = (
             top_query
-            .group_by("cpc_code")
             .order_by(func.count(Patent.id).desc())
             .limit(top_n)
         )
@@ -366,6 +367,7 @@ class CitationService:
         conditions = [
             Patent.assignee_organization.isnot(None),
             extract("year", Patent.filing_date) >= start_year,
+            extract("year", Patent.filing_date) <= end_year,
             Patent.filing_date.isnot(None),
         ]
         if country:

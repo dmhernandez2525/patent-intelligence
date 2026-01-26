@@ -173,6 +173,25 @@ class IdeaGenerationService:
 
         return seeds
 
+    # Strategy descriptions for prompt building
+    _STRATEGY_DESCRIPTIONS = {
+        "expiring": (
+            "\n## Strategy: Expiring Patent Opportunities\n"
+            "These patents are expiring soon. Generate ideas that improve upon, "
+            "combine, or reimagine these technologies using modern approaches."
+        ),
+        "combination": (
+            "\n## Strategy: Cross-Domain Combinations\n"
+            "Look for opportunities to combine technologies from different "
+            "patent classification areas to create novel inventions."
+        ),
+        "improvement": (
+            "\n## Strategy: High-Impact Improvements\n"
+            "These are highly-cited patents. Generate ideas that significantly "
+            "improve upon these foundational technologies."
+        ),
+    }
+
     def _build_prompt(
         self,
         seeds: dict,
@@ -189,24 +208,9 @@ class IdeaGenerationService:
             "technically feasible, non-obvious, and commercially viable."
         )
 
-        if focus == "expiring":
-            sections.append(
-                "\n## Strategy: Expiring Patent Opportunities\n"
-                "These patents are expiring soon. Generate ideas that improve upon, "
-                "combine, or reimagine these technologies using modern approaches."
-            )
-        elif focus == "combination":
-            sections.append(
-                "\n## Strategy: Cross-Domain Combinations\n"
-                "Look for opportunities to combine technologies from different "
-                "patent classification areas to create novel inventions."
-            )
-        elif focus == "improvement":
-            sections.append(
-                "\n## Strategy: High-Impact Improvements\n"
-                "These are highly-cited patents. Generate ideas that significantly "
-                "improve upon these foundational technologies."
-            )
+        strategy_desc = self._STRATEGY_DESCRIPTIONS.get(focus)
+        if strategy_desc:
+            sections.append(strategy_desc)
 
         if seeds.get("expiring_patents"):
             sections.append("\n## Expiring Patents:")
