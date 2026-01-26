@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.utils.logger import logger
 
@@ -13,7 +13,7 @@ class IngestionResult:
     total_inserted: int = 0
     total_updated: int = 0
     total_errors: int = 0
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     errors: list[str] = field(default_factory=list)
 
@@ -109,7 +109,7 @@ class BaseIngester(ABC):
             result.errors.append(str(e))
             logger.error("ingestion.error", source=self.source_name, error=str(e))
 
-        result.completed_at = datetime.now(timezone.utc)
+        result.completed_at = datetime.now(UTC)
         logger.info(
             "ingestion.completed",
             source=self.source_name,

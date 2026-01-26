@@ -2,13 +2,12 @@
 
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.patent import Patent, MaintenanceFee
-from src.models.watchlist import WatchlistItem, Alert
 from src.models.ingestion import IngestionJob
-from src.utils.logger import logger
+from src.models.patent import Patent
+from src.models.watchlist import Alert, WatchlistItem
 
 
 class StatsService:
@@ -103,9 +102,7 @@ class StatsService:
         result = await session.execute(select(func.count(Patent.id)))
         return result.scalar() or 0
 
-    async def _count_expiring(
-        self, session: AsyncSession, today: date, days: int
-    ) -> int:
+    async def _count_expiring(self, session: AsyncSession, today: date, days: int) -> int:
         """Count patents expiring within days."""
         end_date = today + timedelta(days=days)
         result = await session.execute(
@@ -156,9 +153,7 @@ class StatsService:
 
     async def _count_unread_alerts(self, session: AsyncSession, user_id: str) -> int:
         """Count unread alerts for user."""
-        watchlist_ids = select(WatchlistItem.id).where(
-            WatchlistItem.user_id == user_id
-        )
+        watchlist_ids = select(WatchlistItem.id).where(WatchlistItem.user_id == user_id)
 
         result = await session.execute(
             select(func.count(Alert.id)).where(
@@ -174,9 +169,7 @@ class StatsService:
     async def _get_last_ingestion(self, session: AsyncSession) -> dict | None:
         """Get info about the last ingestion job."""
         result = await session.execute(
-            select(IngestionJob)
-            .order_by(IngestionJob.created_at.desc())
-            .limit(1)
+            select(IngestionJob).order_by(IngestionJob.created_at.desc()).limit(1)
         )
         job = result.scalar_one_or_none()
 

@@ -1,13 +1,13 @@
 """Watchlist service for managing watched patents and alerts."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, func, and_, or_, update, delete
+from sqlalchemy import and_, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.patent import Patent, MaintenanceFee
-from src.models.watchlist import WatchlistItem, Alert
+from src.models.patent import MaintenanceFee, Patent
+from src.models.watchlist import Alert, WatchlistItem
 from src.utils.logger import logger
 
 
@@ -188,9 +188,7 @@ class WatchlistService:
         offset = (page - 1) * per_page
 
         # Get user's watchlist item IDs
-        watchlist_ids_query = select(WatchlistItem.id).where(
-            WatchlistItem.user_id == user_id
-        )
+        watchlist_ids_query = select(WatchlistItem.id).where(WatchlistItem.user_id == user_id)
 
         conditions = [
             Alert.watchlist_item_id.in_(watchlist_ids_query),
@@ -242,7 +240,7 @@ class WatchlistService:
         await session.execute(
             update(Alert)
             .where(Alert.id == alert_id)
-            .values(is_read=True, read_at=datetime.now(timezone.utc))
+            .values(is_read=True, read_at=datetime.now(UTC))
         )
         return True
 
@@ -269,7 +267,7 @@ class WatchlistService:
         await session.execute(
             update(Alert)
             .where(Alert.id == alert_id)
-            .values(is_dismissed=True, dismissed_at=datetime.now(timezone.utc))
+            .values(is_dismissed=True, dismissed_at=datetime.now(UTC))
         )
         return True
 
@@ -284,7 +282,7 @@ class WatchlistService:
         Checks expiration dates and maintenance fees for watched patents
         and creates alerts based on configured lead times.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         alerts_created = 0
 
         # Get active watchlist items for user
@@ -303,15 +301,11 @@ class WatchlistService:
         for item in items:
             # Check for expiration alerts
             if item.notify_expiration:
-                alerts_created += await self._check_expiration_alert(
-                    session, item, now
-                )
+                alerts_created += await self._check_expiration_alert(session, item, now)
 
             # Check for maintenance fee alerts
             if item.notify_maintenance:
-                alerts_created += await self._check_maintenance_alert(
-                    session, item, now
-                )
+                alerts_created += await self._check_maintenance_alert(session, item, now)
 
         logger.info(
             "watchlist.alerts_generated",
@@ -328,9 +322,7 @@ class WatchlistService:
         now: datetime,
     ) -> int:
         """Check if expiration alert should be created."""
-        patent_result = await session.execute(
-            select(Patent).where(Patent.id == item.patent_id)
-        )
+        patent_result = await session.execute(select(Patent).where(Patent.id == item.patent_id))
         patent = patent_result.scalar_one_or_none()
 
         if not patent or not patent.expiration_date:
@@ -368,7 +360,7 @@ class WatchlistService:
             related_patent_number=patent.patent_number,
             trigger_date=now,
             due_date=datetime.combine(patent.expiration_date, datetime.min.time()).replace(
-                tzinfo=timezone.utc
+                tzinfo=UTC
             ),
         )
         session.add(alert)
@@ -417,9 +409,7 @@ class WatchlistService:
             return 0
 
         # Get patent for title
-        patent_result = await session.execute(
-            select(Patent).where(Patent.id == item.patent_id)
-        )
+        patent_result = await session.execute(select(Patent).where(Patent.id == item.patent_id))
         patent = patent_result.scalar_one_or_none()
         patent_number = patent.patent_number if patent else item.item_value
 
@@ -435,9 +425,7 @@ class WatchlistService:
             related_patent_number=patent_number,
             related_data={"fee_id": fee.id, "fee_year": fee.fee_year},
             trigger_date=now,
-            due_date=datetime.combine(fee.due_date, datetime.min.time()).replace(
-                tzinfo=timezone.utc
-            ),
+            due_date=datetime.combine(fee.due_date, datetime.min.time()).replace(tzinfo=UTC),
         )
         session.add(alert)
         return 1
@@ -448,9 +436,7 @@ class WatchlistService:
         user_id: str = "default",
     ) -> dict:
         """Get summary of alerts for dashboard."""
-        watchlist_ids_query = select(WatchlistItem.id).where(
-            WatchlistItem.user_id == user_id
-        )
+        watchlist_ids_query = select(WatchlistItem.id).where(WatchlistItem.user_id == user_id)
 
         # Count unread by type
         summary_query = (
@@ -502,7 +488,11 @@ class WatchlistService:
 
     def _to_watchlist_dict(self, item: WatchlistItem) -> dict:
         """Convert watchlist item to dict."""
-        unread_alerts = len([a for a in item.alerts if not a.is_read and not a.is_dismissed]) if item.alerts else 0
+        unread_alerts = (
+            len([a for a in item.alerts if not a.is_read and not a.is_dismissed])
+            if item.alerts
+            else 0
+        )
 
         return {
             "id": item.id,

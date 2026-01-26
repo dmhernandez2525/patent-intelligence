@@ -3,14 +3,13 @@
 Uses PatentSBERTa embeddings for semantic similarity and citation
 networks for prior art analysis.
 """
+
 from datetime import date
 
-from sqlalchemy import select, func, and_, or_, cast, String
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from src.models.patent import Patent, Citation
-from src.utils.logger import logger
+from src.models.patent import Citation, Patent
 
 
 class SimilarityService:
@@ -23,6 +22,7 @@ class SimilarityService:
     def embedding_service(self):
         if self._embedding_service is None:
             from src.ai.embeddings import embedding_service
+
             self._embedding_service = embedding_service
         return self._embedding_service
 
@@ -70,9 +70,7 @@ class SimilarityService:
             conditions.append(Patent.country == country)
 
         if cpc_code:
-            conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_code}%")
-            )
+            conditions.append(func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_code}%"))
 
         query = (
             select(Patent, similarity)
@@ -143,9 +141,7 @@ class SimilarityService:
         # Citation-based prior art (what does this patent cite?)
         citation_results = []
         if patent_number:
-            citation_results = await self._citation_prior_art(
-                session, patent_number, top_k=top_k
-            )
+            citation_results = await self._citation_prior_art(session, patent_number, top_k=top_k)
 
         # Merge and deduplicate
         seen = set()
@@ -254,12 +250,7 @@ class SimilarityService:
         if before_date:
             conditions.append(Patent.filing_date < before_date)
 
-        query = (
-            select(Patent, similarity)
-            .where(and_(*conditions))
-            .order_by(distance)
-            .limit(top_k)
-        )
+        query = select(Patent, similarity).where(and_(*conditions)).order_by(distance).limit(top_k)
 
         result = await session.execute(query)
         rows = result.all()
@@ -356,6 +347,10 @@ class SimilarityService:
         # Get top-level CPC sections (first 4 chars)
         cpc_prefixes = list({code[:4] for code in target.cpc_codes if len(code) >= 4})[:3]
 
+        # Return early if no valid CPC prefixes after filtering
+        if not cpc_prefixes:
+            return []
+
         conditions = [
             Patent.assignee_organization.isnot(None),
             Patent.assignee_organization != target.assignee_organization,
@@ -363,11 +358,10 @@ class SimilarityService:
 
         # Match any CPC prefix using string matching for prefix support
         cpc_conditions = [
-            func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{prefix}%")
+            func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{prefix}%")
             for prefix in cpc_prefixes
         ]
-        if cpc_conditions:
-            conditions.append(or_(*cpc_conditions))
+        conditions.append(or_(*cpc_conditions))
 
         query = (
             select(
@@ -383,16 +377,11 @@ class SimilarityService:
         result = await session.execute(query)
         rows = result.all()
 
-        return [
-            {"assignee": row[0], "patent_count": row[1]}
-            for row in rows
-        ]
+        return [{"assignee": row[0], "patent_count": row[1]} for row in rows]
 
     async def _get_patent(self, session: AsyncSession, patent_number: str) -> Patent | None:
         """Fetch a patent by number."""
-        result = await session.execute(
-            select(Patent).where(Patent.patent_number == patent_number)
-        )
+        result = await session.execute(select(Patent).where(Patent.patent_number == patent_number))
         return result.scalar_one_or_none()
 
     async def _get_patent_embedding(

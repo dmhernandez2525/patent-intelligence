@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.connection import get_session
 from src.api.schemas.expiration import (
     ExpirationDashboardResponse,
     ExpirationListResponse,
     ExpirationStatsResponse,
     MaintenanceFeeListResponse,
 )
+from src.database.connection import get_session
 from src.services.expiration_service import expiration_service
 from src.utils.logger import logger
 
@@ -29,9 +29,7 @@ async def expiration_dashboard(
     lapsed, _ = await expiration_service.get_lapsed_patents(
         session, days_back=90, country=country, per_page=10
     )
-    fees, _ = await expiration_service.get_upcoming_maintenance_fees(
-        session, days=90, per_page=10
-    )
+    fees, _ = await expiration_service.get_upcoming_maintenance_fees(session, days=90, per_page=10)
 
     return ExpirationDashboardResponse(
         stats=stats,

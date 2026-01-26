@@ -25,12 +25,14 @@ celery_app.conf.update(
 def _run_async(coro):
     """Run an async coroutine in a way compatible with Celery workers."""
     import asyncio
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = None
     if loop and loop.is_running():
         import concurrent.futures
+
         with concurrent.futures.ThreadPoolExecutor() as pool:
             return pool.submit(asyncio.run, coro).result()
     return asyncio.run(coro)
@@ -46,13 +48,14 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
     async def _run():
         from src.database.connection import get_db_session
         from src.pipeline.patent_store import store_patent_batch
-        from src.models.ingestion import IngestionJob
 
         if source == "uspto":
             from src.ingesters.uspto_ingester import USPTOIngester
+
             ingester = USPTOIngester()
         elif source == "epo":
             from src.ingesters.epo_ingester import EPOIngester
+
             ingester = EPOIngester()
         else:
             raise ValueError(f"Unknown source: {source}")
@@ -63,13 +66,9 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
         total_errors = 0
 
         try:
-            async for batch in ingester.fetch_patents(
-                offset=0, limit=batch_size, since=None
-            ):
+            async for batch in ingester.fetch_patents(offset=0, limit=batch_size, since=None):
                 async with get_db_session() as session:
-                    ins, upd, errs = await store_patent_batch(
-                        session, batch, source=source
-                    )
+                    ins, upd, errs = await store_patent_batch(session, batch, source=source)
                     total_inserted += ins
                     total_updated += upd
                     total_errors += errs
@@ -123,8 +122,8 @@ def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_si
     logger.info("task.generate_embeddings.started", task_id=self.request.id)
 
     async def _run():
-        from src.database.connection import get_db_session
         from src.ai.embeddings import embedding_service
+        from src.database.connection import get_db_session
 
         total_processed = 0
         async with get_db_session() as session:

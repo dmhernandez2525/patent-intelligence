@@ -1,8 +1,5 @@
 from datetime import date, timedelta
 
-from src.utils.logger import logger
-
-
 # US Patent term: 20 years from earliest filing date (post-1995)
 # Design patents: 15 years from grant date (post-2015)
 # Plant patents: 20 years from filing date
@@ -96,13 +93,15 @@ def calculate_maintenance_fee_dates(
         elif year_offset == 11.5:
             label = "11.5 Year"
 
-        fees.append({
-            "fee_year": fee_year,
-            "label": label,
-            "due_date": due_date,
-            "grace_period_end": grace_end,
-            "window_open": due_date - timedelta(days=180),  # Can pay 6 months early
-        })
+        fees.append(
+            {
+                "fee_year": fee_year,
+                "label": label,
+                "due_date": due_date,
+                "grace_period_end": grace_end,
+                "window_open": due_date - timedelta(days=180),  # Can pay 6 months early
+            }
+        )
 
     return fees
 

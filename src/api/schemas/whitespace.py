@@ -1,6 +1,6 @@
 """Pydantic schemas for white space discovery API."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class CoverageArea(BaseModel):

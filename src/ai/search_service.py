@@ -1,11 +1,7 @@
-from datetime import date
-
-from sqlalchemy import select, func, text, or_, and_, cast, String
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
 from src.models.patent import Patent
-from src.utils.logger import logger
 
 
 def _escape_like(value: str) -> str:
@@ -23,6 +19,7 @@ class PatentSearchService:
     def embedding_service(self):
         if self._embedding_service is None:
             from src.ai.embeddings import embedding_service
+
             self._embedding_service = embedding_service
         return self._embedding_service
 
@@ -52,29 +49,20 @@ class PatentSearchService:
         # Build base query with relevance scoring
         # Use similarity for ranking
         relevance = func.greatest(
-            func.coalesce(
-                func.similarity(Patent.title, query), 0.0
-            ),
-            func.coalesce(
-                func.similarity(Patent.abstract, query), 0.0
-            ),
+            func.coalesce(func.similarity(Patent.title, query), 0.0),
+            func.coalesce(func.similarity(Patent.abstract, query), 0.0),
         ).label("relevance_score")
 
         base_query = select(Patent, relevance).where(search_condition)
         base_query = self._apply_filters(base_query, filters)
 
         # Count total
-        count_query = select(func.count()).select_from(
-            base_query.subquery()
-        )
+        count_query = select(func.count()).select_from(base_query.subquery())
         total = (await session.execute(count_query)).scalar() or 0
 
         # Fetch results ordered by relevance
         results_query = (
-            base_query
-            .order_by(text("relevance_score DESC"))
-            .offset(offset)
-            .limit(per_page)
+            base_query.order_by(text("relevance_score DESC")).offset(offset).limit(per_page)
         )
 
         result = await session.execute(results_query)
@@ -108,17 +96,12 @@ class PatentSearchService:
         distance = Patent.embedding.cosine_distance(query_embedding)
         relevance = (1 - distance).label("relevance_score")
 
-        base_query = (
-            select(Patent, relevance)
-            .where(Patent.embedding.isnot(None))
-        )
+        base_query = select(Patent, relevance).where(Patent.embedding.isnot(None))
         base_query = self._apply_filters(base_query, filters)
 
         # Count total matching patents with embeddings
         count_query = select(func.count()).select_from(
-            select(Patent.id)
-            .where(Patent.embedding.isnot(None))
-            .subquery()
+            select(Patent.id).where(Patent.embedding.isnot(None)).subquery()
         )
         if filters:
             count_base = select(Patent.id).where(Patent.embedding.isnot(None))
@@ -129,8 +112,7 @@ class PatentSearchService:
 
         # Fetch nearest neighbors
         results_query = (
-            base_query
-            .order_by(Patent.embedding.cosine_distance(query_embedding))
+            base_query.order_by(Patent.embedding.cosine_distance(query_embedding))
             .offset(offset)
             .limit(per_page)
         )
@@ -187,12 +169,16 @@ class PatentSearchService:
 
         for rank, result in enumerate(fulltext_results):
             patent_num = result["patent_number"]
-            rrf_scores[patent_num] = rrf_scores.get(patent_num, 0) + (1 - semantic_weight) / (k + rank + 1)
+            rrf_scores[patent_num] = rrf_scores.get(patent_num, 0) + (1 - semantic_weight) / (
+                k + rank + 1
+            )
             patent_data[patent_num] = result
 
         for rank, result in enumerate(semantic_results):
             patent_num = result["patent_number"]
-            rrf_scores[patent_num] = rrf_scores.get(patent_num, 0) + semantic_weight / (k + rank + 1)
+            rrf_scores[patent_num] = rrf_scores.get(patent_num, 0) + semantic_weight / (
+                k + rank + 1
+            )
             patent_data[patent_num] = result
 
         # Sort by RRF score
@@ -200,7 +186,7 @@ class PatentSearchService:
 
         # Paginate
         offset = (page - 1) * per_page
-        page_results = sorted_patents[offset:offset + per_page]
+        page_results = sorted_patents[offset : offset + per_page]
 
         # Normalize RRF scores to [0, 1] range
         max_rrf = sorted_patents[0][1] if sorted_patents else 1.0
@@ -228,9 +214,7 @@ class PatentSearchService:
             )
         if filters.get("cpc_codes"):
             # Check if any CPC code matches
-            query = query.where(
-                Patent.cpc_codes.overlap(filters["cpc_codes"])
-            )
+            query = query.where(Patent.cpc_codes.overlap(filters["cpc_codes"]))
         if filters.get("date_from"):
             query = query.where(Patent.filing_date >= filters["date_from"])
         if filters.get("date_to"):
@@ -247,7 +231,9 @@ class PatentSearchService:
             "abstract": patent.abstract,
             "filing_date": patent.filing_date.isoformat() if patent.filing_date else None,
             "grant_date": patent.grant_date.isoformat() if patent.grant_date else None,
-            "expiration_date": patent.expiration_date.isoformat() if patent.expiration_date else None,
+            "expiration_date": patent.expiration_date.isoformat()
+            if patent.expiration_date
+            else None,
             "assignee_organization": patent.assignee_organization,
             "inventors": patent.inventors,
             "cpc_codes": patent.cpc_codes,

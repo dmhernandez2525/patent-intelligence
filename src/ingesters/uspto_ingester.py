@@ -3,7 +3,6 @@ from datetime import datetime
 
 import httpx
 
-from src.config import settings
 from src.ingesters.base import BaseIngester, RawPatentData
 from src.utils.logger import logger
 from src.utils.rate_limiter import uspto_limiter
@@ -94,11 +93,9 @@ class USPTOIngester(BaseIngester):
 
         # Parse CPC codes
         cpcs_raw = raw.get("cpcs", []) or []
-        cpc_codes = list({
-            cpc.get("cpc_group_id", "")
-            for cpc in cpcs_raw
-            if cpc.get("cpc_group_id")
-        })
+        cpc_codes = list(
+            {cpc.get("cpc_group_id", "") for cpc in cpcs_raw if cpc.get("cpc_group_id")}
+        )
 
         # Parse citations
         cited_raw = raw.get("cited_patents", []) or []
@@ -106,14 +103,15 @@ class USPTOIngester(BaseIngester):
         for cite in cited_raw:
             cited_id = cite.get("cited_patent_id")
             if cited_id:
-                citations.append({
-                    "patent_number": cited_id,
-                    "category": cite.get("cited_patent_category", ""),
-                })
+                citations.append(
+                    {
+                        "patent_number": cited_id,
+                        "category": cite.get("cited_patent_category", ""),
+                    }
+                )
 
         # Parse application data
         application = raw.get("application", {}) or {}
-        application_number = application.get("application_number")
         filing_date = application.get("filing_date")
 
         return RawPatentData(
@@ -181,6 +179,7 @@ class USPTOIngester(BaseIngester):
                     if e.response.status_code == 429:
                         # Rate limited - wait and retry
                         import asyncio
+
                         await asyncio.sleep(60)
                         continue
                     raise

@@ -37,8 +37,9 @@ async def detailed_health_check() -> DetailedHealthResponse:
     celery_status = "healthy"
 
     try:
-        from src.database.connection import engine
         from sqlalchemy import text
+
+        from src.database.connection import engine
 
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))

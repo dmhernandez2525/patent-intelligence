@@ -13,7 +13,11 @@ def parse_date(date_str: str | None) -> date | None:
 
     for fmt in formats:
         try:
-            return date.fromisoformat(date_str) if fmt == "%Y-%m-%d" else __import__("datetime").datetime.strptime(date_str, fmt).date()
+            return (
+                date.fromisoformat(date_str)
+                if fmt == "%Y-%m-%d"
+                else __import__("datetime").datetime.strptime(date_str, fmt).date()
+            )
         except (ValueError, TypeError):
             continue
 

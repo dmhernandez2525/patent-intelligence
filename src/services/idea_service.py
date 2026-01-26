@@ -3,10 +3,12 @@
 Uses LLM (Claude/OpenAI) to generate invention ideas from expiring patents,
 technology trends, and cross-domain combinations.
 """
+
 import json
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_, extract
+import httpx
+from sqlalchemy import and_, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
@@ -18,10 +20,9 @@ class IdeaGenerationService:
     """Service for generating invention ideas from patent intelligence."""
 
     def __init__(self):
-        self._http_client: "httpx.AsyncClient | None" = None
+        self._http_client: httpx.AsyncClient | None = None
 
     async def _get_http_client(self):
-        import httpx
         if self._http_client is None or self._http_client.is_closed:
             self._http_client = httpx.AsyncClient(timeout=60.0)
         return self._http_client
@@ -93,7 +94,7 @@ class IdeaGenerationService:
         ]
         if cpc_prefix:
             expiry_conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
+                func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
             )
 
         expiring_result = await session.execute(
@@ -125,7 +126,7 @@ class IdeaGenerationService:
         ]
         if cpc_prefix:
             growth_conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
+                func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
             )
 
         cpc_unnest = func.unnest(Patent.cpc_codes).label("cpc_code")
@@ -150,7 +151,7 @@ class IdeaGenerationService:
             ]
             if cpc_prefix:
                 impact_conditions.append(
-                    func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
+                    func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
                 )
 
             impact_result = await session.execute(
@@ -173,6 +174,25 @@ class IdeaGenerationService:
 
         return seeds
 
+    # Strategy descriptions for prompt building
+    _STRATEGY_DESCRIPTIONS = {
+        "expiring": (
+            "\n## Strategy: Expiring Patent Opportunities\n"
+            "These patents are expiring soon. Generate ideas that improve upon, "
+            "combine, or reimagine these technologies using modern approaches."
+        ),
+        "combination": (
+            "\n## Strategy: Cross-Domain Combinations\n"
+            "Look for opportunities to combine technologies from different "
+            "patent classification areas to create novel inventions."
+        ),
+        "improvement": (
+            "\n## Strategy: High-Impact Improvements\n"
+            "These are highly-cited patents. Generate ideas that significantly "
+            "improve upon these foundational technologies."
+        ),
+    }
+
     def _build_prompt(
         self,
         seeds: dict,
@@ -189,24 +209,9 @@ class IdeaGenerationService:
             "technically feasible, non-obvious, and commercially viable."
         )
 
-        if focus == "expiring":
-            sections.append(
-                "\n## Strategy: Expiring Patent Opportunities\n"
-                "These patents are expiring soon. Generate ideas that improve upon, "
-                "combine, or reimagine these technologies using modern approaches."
-            )
-        elif focus == "combination":
-            sections.append(
-                "\n## Strategy: Cross-Domain Combinations\n"
-                "Look for opportunities to combine technologies from different "
-                "patent classification areas to create novel inventions."
-            )
-        elif focus == "improvement":
-            sections.append(
-                "\n## Strategy: High-Impact Improvements\n"
-                "These are highly-cited patents. Generate ideas that significantly "
-                "improve upon these foundational technologies."
-            )
+        strategy_desc = self._STRATEGY_DESCRIPTIONS.get(focus)
+        if strategy_desc:
+            sections.append(strategy_desc)
 
         if seeds.get("expiring_patents"):
             sections.append("\n## Expiring Patents:")

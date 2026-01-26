@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.schemas.patent import PatentDetailResponse, PatentListResponse, PatentResponse
 from src.database.connection import get_session
 from src.models.patent import Patent
-from src.api.schemas.patent import PatentResponse, PatentListResponse, PatentDetailResponse
 
 router = APIRouter()
 
@@ -67,27 +67,19 @@ async def patent_stats(
     total = (await session.execute(select(func.count(Patent.id)))).scalar() or 0
 
     active = (
-        await session.execute(
-            select(func.count(Patent.id)).where(Patent.status == "active")
-        )
+        await session.execute(select(func.count(Patent.id)).where(Patent.status == "active"))
     ).scalar() or 0
 
     expired = (
-        await session.execute(
-            select(func.count(Patent.id)).where(Patent.status == "expired")
-        )
+        await session.execute(select(func.count(Patent.id)).where(Patent.status == "expired"))
     ).scalar() or 0
 
     lapsed = (
-        await session.execute(
-            select(func.count(Patent.id)).where(Patent.status == "lapsed")
-        )
+        await session.execute(select(func.count(Patent.id)).where(Patent.status == "lapsed"))
     ).scalar() or 0
 
     countries = (
-        await session.execute(
-            select(func.count(func.distinct(Patent.country)))
-        )
+        await session.execute(select(func.count(func.distinct(Patent.country))))
     ).scalar() or 0
 
     return {

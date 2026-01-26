@@ -35,10 +35,31 @@ class Settings(BaseSettings):
     embedding_model: str = "AI-Growth-Lab/PatentSBERTa"
     embedding_dimension: int = 768
 
-    # Auth
-    secret_key: str = secrets.token_urlsafe(32)
+    # Auth - SECRET_KEY must be set in environment for production
+    # Using a sentinel value that will fail fast if not properly configured
+    secret_key: str = ""
     access_token_expire_minutes: int = 1440
     algorithm: str = "HS256"
+
+    @property
+    def validated_secret_key(self) -> str:
+        """Return secret_key, raising error if not configured in production."""
+        if not self.secret_key:
+            if not self.debug:
+                raise ValueError(
+                    "SECRET_KEY environment variable must be set in production. "
+                    'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
+                )
+            # In debug mode, generate a temporary key (will invalidate on restart)
+            import warnings
+
+            warnings.warn(
+                "Using auto-generated SECRET_KEY in debug mode. "
+                "Set SECRET_KEY env var for persistent sessions.",
+                RuntimeWarning,
+            )
+            return secrets.token_urlsafe(32)
+        return self.secret_key
 
     # CORS
     allowed_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
