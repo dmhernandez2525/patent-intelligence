@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func, desc
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.connection import get_session
-from src.models.ingestion import IngestionJob, IngestionCheckpoint
+from src.models.ingestion import IngestionCheckpoint, IngestionJob
 from src.utils.logger import logger
 
 router = APIRouter()
@@ -78,10 +78,10 @@ async def trigger_ingestion(
     try:
         from src.pipeline.orchestrator import ingest_patents_task
 
-        since = None
+        _since = None  # TODO: Pass to ingest_patents_task when supported
         if request.since_date:
             try:
-                since = datetime.strptime(request.since_date, "%Y-%m-%d")
+                _since = datetime.strptime(request.since_date, "%Y-%m-%d")
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid since_date format")
 
@@ -92,7 +92,7 @@ async def trigger_ingestion(
         )
         job.celery_task_id = task.id
         job.status = "running"
-        job.started_at = datetime.now(timezone.utc)
+        job.started_at = datetime.now(UTC)
     except Exception as e:
         job.status = "failed"
         job.error_message = str(e)

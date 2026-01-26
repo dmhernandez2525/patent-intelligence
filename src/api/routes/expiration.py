@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.connection import get_session
 from src.api.schemas.expiration import (
     ExpirationDashboardResponse,
     ExpirationListResponse,
     ExpirationStatsResponse,
     MaintenanceFeeListResponse,
 )
+from src.database.connection import get_session
 from src.services.expiration_service import expiration_service
 from src.utils.logger import logger
 

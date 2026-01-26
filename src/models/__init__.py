@@ -1,4 +1,5 @@
 from src.models.base import Base
+from src.models.ingestion import IngestionCheckpoint, IngestionJob
 from src.models.patent import (
     Citation,
     MaintenanceFee,
@@ -7,7 +8,6 @@ from src.models.patent import (
     PatentFamily,
     PatentFamilyMember,
 )
-from src.models.ingestion import IngestionJob, IngestionCheckpoint
 from src.models.watchlist import Alert, WatchlistItem
 
 __all__ = [

@@ -1,13 +1,13 @@
 """Watchlist service for managing watched patents and alerts."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, func, and_, or_, update, delete
+from sqlalchemy import and_, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.patent import Patent, MaintenanceFee
-from src.models.watchlist import WatchlistItem, Alert
+from src.models.patent import MaintenanceFee, Patent
+from src.models.watchlist import Alert, WatchlistItem
 from src.utils.logger import logger
 
 
@@ -242,7 +242,7 @@ class WatchlistService:
         await session.execute(
             update(Alert)
             .where(Alert.id == alert_id)
-            .values(is_read=True, read_at=datetime.now(timezone.utc))
+            .values(is_read=True, read_at=datetime.now(UTC))
         )
         return True
 
@@ -269,7 +269,7 @@ class WatchlistService:
         await session.execute(
             update(Alert)
             .where(Alert.id == alert_id)
-            .values(is_dismissed=True, dismissed_at=datetime.now(timezone.utc))
+            .values(is_dismissed=True, dismissed_at=datetime.now(UTC))
         )
         return True
 
@@ -284,7 +284,7 @@ class WatchlistService:
         Checks expiration dates and maintenance fees for watched patents
         and creates alerts based on configured lead times.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         alerts_created = 0
 
         # Get active watchlist items for user
@@ -368,7 +368,7 @@ class WatchlistService:
             related_patent_number=patent.patent_number,
             trigger_date=now,
             due_date=datetime.combine(patent.expiration_date, datetime.min.time()).replace(
-                tzinfo=timezone.utc
+                tzinfo=UTC
             ),
         )
         session.add(alert)
@@ -436,7 +436,7 @@ class WatchlistService:
             related_data={"fee_id": fee.id, "fee_year": fee.fee_year},
             trigger_date=now,
             due_date=datetime.combine(fee.due_date, datetime.min.time()).replace(
-                tzinfo=timezone.utc
+                tzinfo=UTC
             ),
         )
         session.add(alert)

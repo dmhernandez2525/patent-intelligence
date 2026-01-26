@@ -3,7 +3,6 @@ from datetime import datetime
 
 import httpx
 
-from src.config import settings
 from src.ingesters.base import BaseIngester, RawPatentData
 from src.utils.logger import logger
 from src.utils.rate_limiter import uspto_limiter
@@ -113,7 +112,6 @@ class USPTOIngester(BaseIngester):
 
         # Parse application data
         application = raw.get("application", {}) or {}
-        application_number = application.get("application_number")
         filing_date = application.get("filing_date")
 
         return RawPatentData(

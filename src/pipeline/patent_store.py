@@ -1,13 +1,11 @@
-from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.dialects.postgresql import insert
 
 from src.ingesters.base import RawPatentData
-from src.models.patent import Patent, Citation, PatentClaim
-from src.pipeline.normalizer import normalize_raw_patent, parse_date
+from src.models.patent import Citation, Patent
 from src.pipeline.expiration_calc import calculate_expiration_date
+from src.pipeline.normalizer import normalize_raw_patent
 from src.utils.logger import logger
 
 

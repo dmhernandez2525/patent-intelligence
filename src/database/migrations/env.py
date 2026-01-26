@@ -7,8 +7,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.config import settings
-from src.models.base import Base
 from src.models import patent  # noqa: F401
+from src.models.base import Base
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

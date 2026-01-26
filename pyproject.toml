@@ -59,7 +59,21 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "S", "B", "A", "COM", "C4", "T20", "RET", "SIM"]
-ignore = ["S101", "COM812"]
+ignore = [
+    "S101",    # assert statements allowed in tests
+    "COM812",  # trailing comma - handled by formatter
+    "E712",    # == False/True comparisons required for SQLAlchemy column expressions
+    "B008",    # Depends() in defaults is standard FastAPI pattern
+    "B905",    # zip strict parameter not needed for equal-length iterables
+    "E501",    # line too long - handled by formatter where possible
+    "RET504",  # unnecessary assignment before return - sometimes aids readability
+    "B904",    # raise from err - not always necessary for HTTP exceptions
+    "SIM102",  # nested if - sometimes clearer than combined conditions
+    "SIM108",  # ternary operator - not always more readable
+    "SIM118",  # dict.keys() - harmless extra call
+    "B007",    # unused loop variable - underscore prefix is optional
+    "B028",    # stacklevel in warnings - not critical
+]
 
 [tool.mypy]
 python_version = "3.11"

@@ -6,12 +6,10 @@ declining sectors, and cross-domain opportunities.
 
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_, extract, case, literal_column
+from sqlalchemy import and_, case, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.patent import Patent
-from src.utils.logger import logger
-
 
 # Standard CPC sections and their descriptions
 CPC_SECTIONS = {
@@ -503,14 +501,13 @@ class WhiteSpaceService:
         """Classify the type of white space opportunity."""
         if decline_ratio > 0.7 and high_impact >= 3:
             return "abandoned_goldmine"  # High-impact area with sharp decline
-        elif decline_ratio > 0.5 and recent < 5:
+        if decline_ratio > 0.5 and recent < 5:
             return "dormant"  # Significant decline, very few recent
-        elif high_impact >= 5 and decline_ratio > 0.3:
+        if high_impact >= 5 and decline_ratio > 0.3:
             return "consolidation"  # Foundational patents, slowing innovation
-        elif decline_ratio > 0.3:
+        if decline_ratio > 0.3:
             return "emerging_gap"  # Moderate decline, potential opportunity
-        else:
-            return "minor_gap"
+        return "minor_gap"
 
 
 whitespace_service = WhiteSpaceService()

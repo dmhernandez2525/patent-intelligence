@@ -3,13 +3,12 @@
 Provides citation graph traversal, technology trend analysis,
 and competitive landscape insights.
 """
-from datetime import date, timedelta
+from datetime import date
 
-from sqlalchemy import select, func, and_, extract, case, text, column
+from sqlalchemy import and_, column, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.patent import Patent, Citation
-from src.utils.logger import logger
+from src.models.patent import Citation, Patent
 
 
 class CitationService:

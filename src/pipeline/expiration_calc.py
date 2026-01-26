@@ -1,8 +1,5 @@
 from datetime import date, timedelta
 
-from src.utils.logger import logger
-
-
 # US Patent term: 20 years from earliest filing date (post-1995)
 # Design patents: 15 years from grant date (post-2015)
 # Plant patents: 20 years from filing date

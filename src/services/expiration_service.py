@@ -1,11 +1,10 @@
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_, or_, case, cast, String
+from sqlalchemy import and_, extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.patent import Patent, MaintenanceFee
-from src.utils.logger import logger
+from src.models.patent import MaintenanceFee, Patent
 
 
 class ExpirationService:

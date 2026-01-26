@@ -6,9 +6,9 @@ covering 90+ countries with bibliographic, legal status, and family data.
 from collections.abc import AsyncGenerator
 from datetime import datetime
 
-from src.ingesters.base import BaseIngester, RawPatentData, IngestionResult
-from src.ingesters.epo_client import EPOClient, EPOAPIError, EPOAuthError
-from src.pipeline.normalizer import normalize_patent_number, normalize_cpc_code
+from src.ingesters.base import BaseIngester, RawPatentData
+from src.ingesters.epo_client import EPOAPIError, EPOAuthError, EPOClient
+from src.pipeline.normalizer import normalize_cpc_code, normalize_patent_number
 from src.utils.logger import logger
 
 

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.connection import get_session
-from src.api.schemas.search import SearchRequest, SearchResponse, SearchResultItem
 from src.ai.search_service import search_service
+from src.api.schemas.search import SearchRequest, SearchResponse, SearchResultItem
+from src.database.connection import get_session
 from src.utils.logger import logger
 
 router = APIRouter()

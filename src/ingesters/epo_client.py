@@ -6,7 +6,7 @@ DOCDB (bibliographic), INPADOC (legal status), and family data.
 API Documentation: https://www.epo.org/searching-for-patents/data/web-services/ops.html
 """
 import base64
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -86,7 +86,7 @@ class EPOClient:
         data = response.json()
         self._access_token = data["access_token"]
         expires_in = int(data.get("expires_in", 1200))
-        self._token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in - 60)
+        self._token_expires_at = datetime.now(UTC) + timedelta(seconds=expires_in - 60)
 
         logger.info("epo.authenticated", expires_in=expires_in)
 
@@ -95,7 +95,7 @@ class EPOClient:
         if (
             self._access_token is None
             or self._token_expires_at is None
-            or datetime.now(timezone.utc) >= self._token_expires_at
+            or datetime.now(UTC) >= self._token_expires_at
         ):
             await self._authenticate()
         return self._access_token  # type: ignore[return-value]

@@ -46,7 +46,6 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
     async def _run():
         from src.database.connection import get_db_session
         from src.pipeline.patent_store import store_patent_batch
-        from src.models.ingestion import IngestionJob
 
         if source == "uspto":
             from src.ingesters.uspto_ingester import USPTOIngester
@@ -123,8 +122,8 @@ def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_si
     logger.info("task.generate_embeddings.started", task_id=self.request.id)
 
     async def _run():
-        from src.database.connection import get_db_session
         from src.ai.embeddings import embedding_service
+        from src.database.connection import get_db_session
 
         total_processed = 0
         async with get_db_session() as session:

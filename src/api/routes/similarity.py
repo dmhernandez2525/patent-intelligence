@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.connection import get_session
 from src.api.schemas.similarity import (
-    SimilarityRequest,
-    SimilarityResponse,
+    LandscapeResponse,
     PriorArtRequest,
     PriorArtResponse,
-    LandscapeResponse,
+    SimilarityRequest,
+    SimilarityResponse,
 )
+from src.database.connection import get_session
 from src.services.similarity_service import similarity_service
 from src.utils.logger import logger
 

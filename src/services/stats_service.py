@@ -2,13 +2,12 @@
 
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.patent import Patent, MaintenanceFee
-from src.models.watchlist import WatchlistItem, Alert
 from src.models.ingestion import IngestionJob
-from src.utils.logger import logger
+from src.models.patent import Patent
+from src.models.watchlist import Alert, WatchlistItem
 
 
 class StatsService:

@@ -5,12 +5,10 @@ networks for prior art analysis.
 """
 from datetime import date
 
-from sqlalchemy import select, func, and_, or_, cast, String
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from src.models.patent import Patent, Citation
-from src.utils.logger import logger
+from src.models.patent import Citation, Patent
 
 
 class SimilarityService:

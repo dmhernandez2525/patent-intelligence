@@ -1,11 +1,22 @@
-from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.routes import (
+    analysis,
+    expiration,
+    health,
+    ideas,
+    ingestion,
+    patents,
+    search,
+    similarity,
+    watchlist,
+    whitespace,
+)
 from src.config import settings
-from src.api.routes import health, patents, search, expiration, analysis, similarity, ideas, watchlist, ingestion, whitespace
 from src.utils.logger import logger
 
 

@@ -1,11 +1,8 @@
-from datetime import date
 
-from sqlalchemy import select, func, text, or_, and_, cast, String
+from sqlalchemy import func, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
 from src.models.patent import Patent
-from src.utils.logger import logger
 
 
 def _escape_like(value: str) -> str:

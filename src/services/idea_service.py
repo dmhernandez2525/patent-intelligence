@@ -6,7 +6,8 @@ technology trends, and cross-domain combinations.
 import json
 from datetime import date, timedelta
 
-from sqlalchemy import select, func, and_, extract
+import httpx
+from sqlalchemy import and_, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
@@ -18,10 +19,9 @@ class IdeaGenerationService:
     """Service for generating invention ideas from patent intelligence."""
 
     def __init__(self):
-        self._http_client: "httpx.AsyncClient | None" = None
+        self._http_client: httpx.AsyncClient | None = None
 
     async def _get_http_client(self):
-        import httpx
         if self._http_client is None or self._http_client.is_closed:
             self._http_client = httpx.AsyncClient(timeout=60.0)
         return self._http_client

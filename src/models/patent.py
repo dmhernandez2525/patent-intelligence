@@ -1,17 +1,15 @@
-from datetime import date, datetime
+from datetime import date
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     Boolean,
     Date,
-    DateTime,
     Float,
     ForeignKey,
     Index,
     Integer,
     String,
     Text,
-    func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
