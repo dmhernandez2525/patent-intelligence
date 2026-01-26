@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,10 +54,9 @@ async def store_patent_batch(
                 updated += 1
             else:
                 # Insert new patent
-                patent = Patent(**{
-                    k: v for k, v in normalized.items()
-                    if k in Patent.__table__.columns.keys()
-                })
+                patent = Patent(
+                    **{k: v for k, v in normalized.items() if k in Patent.__table__.columns.keys()}
+                )
                 session.add(patent)
                 inserted += 1
 

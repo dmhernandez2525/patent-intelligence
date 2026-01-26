@@ -29,9 +29,7 @@ async def expiration_dashboard(
     lapsed, _ = await expiration_service.get_lapsed_patents(
         session, days_back=90, country=country, per_page=10
     )
-    fees, _ = await expiration_service.get_upcoming_maintenance_fees(
-        session, days=90, per_page=10
-    )
+    fees, _ = await expiration_service.get_upcoming_maintenance_fees(session, days=90, per_page=10)
 
     return ExpirationDashboardResponse(
         stats=stats,

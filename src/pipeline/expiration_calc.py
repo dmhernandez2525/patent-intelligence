@@ -93,13 +93,15 @@ def calculate_maintenance_fee_dates(
         elif year_offset == 11.5:
             label = "11.5 Year"
 
-        fees.append({
-            "fee_year": fee_year,
-            "label": label,
-            "due_date": due_date,
-            "grace_period_end": grace_end,
-            "window_open": due_date - timedelta(days=180),  # Can pay 6 months early
-        })
+        fees.append(
+            {
+                "fee_year": fee_year,
+                "label": label,
+                "due_date": due_date,
+                "grace_period_end": grace_end,
+                "window_open": due_date - timedelta(days=180),  # Can pay 6 months early
+            }
+        )
 
     return fees
 

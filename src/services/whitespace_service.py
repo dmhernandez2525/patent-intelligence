@@ -110,16 +110,18 @@ class WhiteSpaceService:
             section = cpc_code[0] if cpc_code else ""
             section_name = CPC_SECTIONS.get(section, "Unknown")
 
-            coverage_areas.append({
-                "cpc_code": cpc_code,
-                "section": section,
-                "section_name": section_name,
-                "patent_count": patent_count,
-                "avg_citations": round(avg_citations, 2),
-                "recent_count": recent_count,
-                "growth_rate": round(growth_rate, 3),
-                "density_score": round(patent_count / avg_patents, 2) if avg_patents > 0 else 0,
-            })
+            coverage_areas.append(
+                {
+                    "cpc_code": cpc_code,
+                    "section": section,
+                    "section_name": section_name,
+                    "patent_count": patent_count,
+                    "avg_citations": round(avg_citations, 2),
+                    "recent_count": recent_count,
+                    "growth_rate": round(growth_rate, 3),
+                    "density_score": round(patent_count / avg_patents, 2) if avg_patents > 0 else 0,
+                }
+            )
 
         return {
             "coverage_areas": coverage_areas,
@@ -160,9 +162,7 @@ class WhiteSpaceService:
             Patent.filing_date >= historical_start,
         ]
         if cpc_prefix:
-            conditions.append(
-                func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
-            )
+            conditions.append(func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%"))
 
         # Get historical vs recent activity by CPC subclass (first 8 chars)
         cpc_unnest = func.unnest(Patent.cpc_codes).label("cpc_full")
@@ -253,18 +253,22 @@ class WhiteSpaceService:
 
             section = cpc_code[0] if cpc_code else ""
 
-            white_spaces.append({
-                "cpc_code": cpc_code,
-                "section": section,
-                "section_name": CPC_SECTIONS.get(section, "Unknown"),
-                "historical_patents": historical,
-                "recent_patents": recent,
-                "decline_ratio": round(decline_ratio, 3),
-                "high_impact_count": high_impact,
-                "max_citations": max_citations,
-                "gap_score": round(gap_score, 3),
-                "opportunity_type": self._classify_opportunity(decline_ratio, high_impact, recent),
-            })
+            white_spaces.append(
+                {
+                    "cpc_code": cpc_code,
+                    "section": section,
+                    "section_name": CPC_SECTIONS.get(section, "Unknown"),
+                    "historical_patents": historical,
+                    "recent_patents": recent,
+                    "decline_ratio": round(decline_ratio, 3),
+                    "high_impact_count": high_impact,
+                    "max_citations": max_citations,
+                    "gap_score": round(gap_score, 3),
+                    "opportunity_type": self._classify_opportunity(
+                        decline_ratio, high_impact, recent
+                    ),
+                }
+            )
 
         # Sort by gap score descending
         white_spaces.sort(key=lambda x: x["gap_score"], reverse=True)
@@ -304,8 +308,7 @@ class WhiteSpaceService:
 
         # First, get patents in the source area
         source_patents = (
-            select(Patent.id)
-            .where(
+            select(Patent.id).where(
                 and_(
                     func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{source_cpc}%"),
                     Patent.filing_date >= start_date,
@@ -339,7 +342,9 @@ class WhiteSpaceService:
         )
 
         result = await session.execute(cooccurrence_query)
-        existing_combos = {row[0]: {"count": row[2], "avg_citations": float(row[3] or 0)} for row in result.all()}
+        existing_combos = {
+            row[0]: {"count": row[2], "avg_citations": float(row[3] or 0)} for row in result.all()
+        }
 
         # Find areas with high activity that AREN'T being combined yet
         # These represent untapped opportunities
@@ -389,16 +394,18 @@ class WhiteSpaceService:
                 opportunity_score = min(1.0, 0.5 + (patent_count / 1000))
                 status = "untapped"
 
-            opportunities.append({
-                "cpc_code": cpc_class,
-                "section": section,
-                "section_name": CPC_SECTIONS.get(section, "Unknown"),
-                "patent_count": patent_count,
-                "avg_citations": round(avg_citations, 2),
-                "existing_combinations": existing["count"] if existing else 0,
-                "opportunity_score": round(opportunity_score, 3),
-                "status": status,
-            })
+            opportunities.append(
+                {
+                    "cpc_code": cpc_class,
+                    "section": section,
+                    "section_name": CPC_SECTIONS.get(section, "Unknown"),
+                    "patent_count": patent_count,
+                    "avg_citations": round(avg_citations, 2),
+                    "existing_combinations": existing["count"] if existing else 0,
+                    "opportunity_score": round(opportunity_score, 3),
+                    "status": status,
+                }
+            )
 
         # Sort by opportunity score
         opportunities.sort(key=lambda x: x["opportunity_score"], reverse=True)
@@ -474,17 +481,23 @@ class WhiteSpaceService:
             recent_share = recent / (sum(r[2] or 0 for r in rows) or 1)
             momentum = recent_share / total_share if total_share > 0 else 1
 
-            sections.append({
-                "section": sect,
-                "name": CPC_SECTIONS.get(sect, "Unknown"),
-                "total_patents": total,
-                "recent_patents": recent,
-                "market_share": round(total_share * 100, 1),
-                "avg_citations": round(avg_cit, 2),
-                "high_impact_count": high_impact,
-                "momentum": round(momentum, 2),
-                "trend": "growing" if momentum > 1.1 else "declining" if momentum < 0.9 else "stable",
-            })
+            sections.append(
+                {
+                    "section": sect,
+                    "name": CPC_SECTIONS.get(sect, "Unknown"),
+                    "total_patents": total,
+                    "recent_patents": recent,
+                    "market_share": round(total_share * 100, 1),
+                    "avg_citations": round(avg_cit, 2),
+                    "high_impact_count": high_impact,
+                    "momentum": round(momentum, 2),
+                    "trend": "growing"
+                    if momentum > 1.1
+                    else "declining"
+                    if momentum < 0.9
+                    else "stable",
+                }
+            )
 
         return {
             "sections": sections,

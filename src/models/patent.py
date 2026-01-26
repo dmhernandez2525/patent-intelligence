@@ -70,7 +70,9 @@ class Patent(TimestampMixin, Base):
     )
 
     # Relationships
-    claims: Mapped[list["PatentClaim"]] = relationship(back_populates="patent", cascade="all, delete")
+    claims: Mapped[list["PatentClaim"]] = relationship(
+        back_populates="patent", cascade="all, delete"
+    )
     citations_made: Mapped[list["Citation"]] = relationship(
         back_populates="citing_patent",
         foreign_keys="Citation.citing_patent_id",
@@ -90,8 +92,12 @@ class Patent(TimestampMixin, Base):
 
     __table_args__ = (
         Index("ix_patents_cpc_gin", "cpc_codes", postgresql_using="gin"),
-        Index("ix_patents_title_trgm", "title", postgresql_using="gin",
-              postgresql_ops={"title": "gin_trgm_ops"}),
+        Index(
+            "ix_patents_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
         Index("ix_patents_filing_date", "filing_date"),
         Index("ix_patents_country_status", "country", "status"),
     )
@@ -109,9 +115,7 @@ class PatentClaim(TimestampMixin, Base):
 
     patent: Mapped["Patent"] = relationship(back_populates="claims")
 
-    __table_args__ = (
-        Index("ix_claims_patent_number", "patent_id", "claim_number", unique=True),
-    )
+    __table_args__ = (Index("ix_claims_patent_number", "patent_id", "claim_number", unique=True),)
 
 
 class Citation(TimestampMixin, Base):
@@ -179,14 +183,10 @@ class PatentFamilyMember(Base):
     family_id: Mapped[int] = mapped_column(
         ForeignKey("patent_families.id", ondelete="CASCADE"), index=True
     )
-    patent_id: Mapped[int] = mapped_column(
-        ForeignKey("patents.id", ondelete="CASCADE"), index=True
-    )
+    patent_id: Mapped[int] = mapped_column(ForeignKey("patents.id", ondelete="CASCADE"), index=True)
     role: Mapped[str] = mapped_column(String(20), default="member")
 
     family: Mapped["PatentFamily"] = relationship(back_populates="members")
     patent: Mapped["Patent"] = relationship(back_populates="family_memberships")
 
-    __table_args__ = (
-        Index("ix_family_members_unique", "family_id", "patent_id", unique=True),
-    )
+    __table_args__ = (Index("ix_family_members_unique", "family_id", "patent_id", unique=True),)

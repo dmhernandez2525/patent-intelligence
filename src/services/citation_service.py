@@ -3,6 +3,7 @@
 Provides citation graph traversal, technology trend analysis,
 and competitive landscape insights.
 """
+
 from datetime import date
 
 from sqlalchemy import and_, column, extract, func, select
@@ -56,15 +57,19 @@ class CitationService:
                         nodes[cited_patent.patent_number] = self._to_node(cited_patent, depth=level)
                         visited.add(cited_patent.id)
                         next_level.append(cited_patent)
-                    target_num = cited_patent.patent_number if cited_patent else citation.cited_patent_number
+                    target_num = (
+                        cited_patent.patent_number if cited_patent else citation.cited_patent_number
+                    )
                     edge_key = (patent.patent_number, target_num, "cites")
                     if edge_key not in edge_set:
                         edge_set.add(edge_key)
-                        edges.append({
-                            "source": patent.patent_number,
-                            "target": target_num,
-                            "type": "cites",
-                        })
+                        edges.append(
+                            {
+                                "source": patent.patent_number,
+                                "target": target_num,
+                                "type": "cites",
+                            }
+                        )
 
                 # Backward citations (patents that cite this one)
                 citing = await self._get_backward_citations(session, patent.id)
@@ -72,18 +77,22 @@ class CitationService:
                     if len(nodes) >= max_nodes:
                         break
                     if citing_patent and citing_patent.id not in visited:
-                        nodes[citing_patent.patent_number] = self._to_node(citing_patent, depth=level)
+                        nodes[citing_patent.patent_number] = self._to_node(
+                            citing_patent, depth=level
+                        )
                         visited.add(citing_patent.id)
                         next_level.append(citing_patent)
                     source_num = citing_patent.patent_number if citing_patent else "unknown"
                     edge_key = (source_num, patent.patent_number, "cited_by")
                     if edge_key not in edge_set:
                         edge_set.add(edge_key)
-                        edges.append({
-                            "source": source_num,
-                            "target": patent.patent_number,
-                            "type": "cited_by",
-                        })
+                        edges.append(
+                            {
+                                "source": source_num,
+                                "target": patent.patent_number,
+                                "type": "cited_by",
+                            }
+                        )
 
             current_level = next_level
 
@@ -113,9 +122,7 @@ class CitationService:
         start_year = current_year - years
 
         # Overall yearly patent counts
-        yearly_counts = await self._get_yearly_counts(
-            session, start_year, current_year, country
-        )
+        yearly_counts = await self._get_yearly_counts(session, start_year, current_year, country)
 
         # Top CPC sections by recent filings
         top_cpc = await self._get_top_cpc_trends(
@@ -151,28 +158,30 @@ class CitationService:
             return {"error": "Patent not found"}
 
         # Count forward citations
-        forward_count = (await session.execute(
-            select(func.count(Citation.id)).where(
-                Citation.citing_patent_id == target.id
+        forward_count = (
+            await session.execute(
+                select(func.count(Citation.id)).where(Citation.citing_patent_id == target.id)
             )
-        )).scalar() or 0
+        ).scalar() or 0
 
         # Count backward citations
-        backward_count = (await session.execute(
-            select(func.count(Citation.id)).where(
-                Citation.cited_patent_id == target.id
+        backward_count = (
+            await session.execute(
+                select(func.count(Citation.id)).where(Citation.cited_patent_id == target.id)
             )
-        )).scalar() or 0
+        ).scalar() or 0
 
         # Average citations for same year/CPC
         avg_citations = None
         if target.filing_date and target.cpc_codes:
             year = target.filing_date.year
             avg_result = await session.execute(
-                select(func.avg(Patent.cited_by_count)).where(and_(
-                    extract("year", Patent.filing_date) == year,
-                    Patent.cpc_codes.overlap(target.cpc_codes[:1]),
-                ))
+                select(func.avg(Patent.cited_by_count)).where(
+                    and_(
+                        extract("year", Patent.filing_date) == year,
+                        Patent.cpc_codes.overlap(target.cpc_codes[:1]),
+                    )
+                )
             )
             avg_citations = float(avg_result.scalar() or 0)
 
@@ -181,7 +190,9 @@ class CitationService:
             "forward_citations": forward_count,
             "backward_citations": backward_count,
             "avg_field_citations": round(avg_citations, 1) if avg_citations else None,
-            "citation_index": round(backward_count / avg_citations, 2) if avg_citations and avg_citations > 0 else None,
+            "citation_index": round(backward_count / avg_citations, 2)
+            if avg_citations and avg_citations > 0
+            else None,
         }
 
     async def _get_forward_citations(
@@ -261,15 +272,9 @@ class CitationService:
         )
 
         if cpc_prefix:
-            top_query = top_query.having(
-                column("cpc_code").like(f"{cpc_prefix}%")
-            )
+            top_query = top_query.having(column("cpc_code").like(f"{cpc_prefix}%"))
 
-        top_query = (
-            top_query
-            .order_by(func.count(Patent.id).desc())
-            .limit(top_n)
-        )
+        top_query = top_query.order_by(func.count(Patent.id).desc()).limit(top_n)
 
         result = await session.execute(top_query)
         top_codes = result.all()
@@ -344,12 +349,14 @@ class CitationService:
             earlier = earlier_counts.get(code, 0)
             if earlier > 5:  # Min threshold to avoid noise
                 growth_rate = (recent - earlier) / earlier
-                growth.append({
-                    "cpc_code": code,
-                    "recent_count": recent,
-                    "earlier_count": earlier,
-                    "growth_rate": round(growth_rate, 3),
-                })
+                growth.append(
+                    {
+                        "cpc_code": code,
+                        "recent_count": recent,
+                        "earlier_count": earlier,
+                        "growth_rate": round(growth_rate, 3),
+                    }
+                )
 
         growth.sort(key=lambda x: x["growth_rate"], reverse=True)
         return growth[:top_n]
@@ -383,15 +390,10 @@ class CitationService:
             .limit(top_n)
         )
 
-        return [
-            {"assignee": row[0], "patent_count": row[1]}
-            for row in result.all()
-        ]
+        return [{"assignee": row[0], "patent_count": row[1]} for row in result.all()]
 
     async def _get_patent(self, session: AsyncSession, patent_number: str) -> Patent | None:
-        result = await session.execute(
-            select(Patent).where(Patent.patent_number == patent_number)
-        )
+        result = await session.execute(select(Patent).where(Patent.patent_number == patent_number))
         return result.scalar_one_or_none()
 
     @staticmethod

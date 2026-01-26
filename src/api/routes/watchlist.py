@@ -175,9 +175,7 @@ async def update_watchlist_item(
     if not updates:
         raise HTTPException(status_code=400, detail="No updates provided")
 
-    item = await watchlist_service.update_watchlist_item(
-        session, item_id=item_id, **updates
-    )
+    item = await watchlist_service.update_watchlist_item(session, item_id=item_id, **updates)
 
     if not item:
         raise HTTPException(status_code=404, detail="Watchlist item not found")

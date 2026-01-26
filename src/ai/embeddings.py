@@ -17,6 +17,7 @@ class EmbeddingService:
     def model(self):
         if self._model is None:
             from sentence_transformers import SentenceTransformer
+
             self._model = SentenceTransformer(settings.embedding_model)
             logger.info("embeddings.model_loaded", model=settings.embedding_model)
         return self._model

@@ -1,9 +1,11 @@
 """Schemas for AI-powered idea generation endpoints."""
+
 from pydantic import BaseModel, Field
 
 
 class IdeaRequest(BaseModel):
     """Request body for idea generation."""
+
     cpc_prefix: str | None = Field(None, description="CPC code prefix to focus on")
     focus: str = Field(
         default="expiring",
@@ -16,6 +18,7 @@ class IdeaRequest(BaseModel):
 
 class GeneratedIdea(BaseModel):
     """A single generated invention idea."""
+
     title: str
     description: str
     rationale: str
@@ -26,6 +29,7 @@ class GeneratedIdea(BaseModel):
 
 class IdeaResponse(BaseModel):
     """Response from idea generation."""
+
     ideas: list[GeneratedIdea]
     focus: str
     cpc_prefix: str | None
@@ -35,6 +39,7 @@ class IdeaResponse(BaseModel):
 
 class SeedPatent(BaseModel):
     """Expiring patent used as seed for idea generation."""
+
     patent_number: str
     title: str
     abstract: str
@@ -46,12 +51,14 @@ class SeedPatent(BaseModel):
 
 class GrowthArea(BaseModel):
     """Trending technology area."""
+
     cpc_code: str
     patent_count: int
 
 
 class SeedResponse(BaseModel):
     """Seed data for idea generation context."""
+
     expiring_patents: list[SeedPatent] = []
     growth_areas: list[GrowthArea] = []
     high_impact_patents: list[SeedPatent] = []

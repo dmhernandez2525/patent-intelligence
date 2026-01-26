@@ -3,6 +3,7 @@
 Fetches patent data from EPO DOCDB and INPADOC databases,
 covering 90+ countries with bibliographic, legal status, and family data.
 """
+
 from collections.abc import AsyncGenerator
 from datetime import datetime
 
@@ -146,9 +147,7 @@ class EPOIngester(BaseIngester):
     def _get_total_count(self, result: dict) -> int | None:
         """Extract total result count from search response."""
         try:
-            biblio_search = result.get("ops:world-patent-data", {}).get(
-                "ops:biblio-search", {}
-            )
+            biblio_search = result.get("ops:world-patent-data", {}).get("ops:biblio-search", {})
             total = biblio_search.get("@total-result-count")
             return int(total) if total else None
         except (ValueError, TypeError):
@@ -159,9 +158,7 @@ class EPOIngester(BaseIngester):
         patents = []
 
         try:
-            biblio_search = result.get("ops:world-patent-data", {}).get(
-                "ops:biblio-search", {}
-            )
+            biblio_search = result.get("ops:world-patent-data", {}).get("ops:biblio-search", {})
             search_result = biblio_search.get("ops:search-result", {})
             exchange_docs = search_result.get("exchange-documents", [])
 
@@ -245,9 +242,7 @@ class EPOIngester(BaseIngester):
         """Parse full-cycle response into RawPatentData."""
         try:
             world_data = result.get("ops:world-patent-data", {})
-            exchange_docs = world_data.get("exchange-documents", {}).get(
-                "exchange-document", {}
-            )
+            exchange_docs = world_data.get("exchange-documents", {}).get("exchange-document", {})
 
             if isinstance(exchange_docs, list):
                 exchange_docs = exchange_docs[0] if exchange_docs else {}
@@ -339,6 +334,7 @@ class EPOIngester(BaseIngester):
             return None
         try:
             from datetime import datetime
+
             parsed = datetime.strptime(date_val[:8], "%Y%m%d")
             return parsed.strftime("%Y-%m-%d")
         except ValueError:
@@ -399,9 +395,7 @@ class EPOIngester(BaseIngester):
         scheme: str,
     ) -> list[str] | None:
         """Extract patent classifications (CPC or IPC)."""
-        classifications = biblio.get("patent-classifications", {}).get(
-            "patent-classification", []
-        )
+        classifications = biblio.get("patent-classifications", {}).get("patent-classification", [])
         if isinstance(classifications, dict):
             classifications = [classifications]
 
@@ -435,11 +429,13 @@ class EPOIngester(BaseIngester):
         for i, claim in enumerate(claim_list):
             claim_text = self._extract_text_content(claim)
             if claim_text:
-                claims.append({
-                    "claim_number": i + 1,
-                    "text": claim_text,
-                    "type": "independent" if i == 0 else "dependent",
-                })
+                claims.append(
+                    {
+                        "claim_number": i + 1,
+                        "text": claim_text,
+                        "type": "independent" if i == 0 else "dependent",
+                    }
+                )
 
         return claims if claims else None
 
@@ -448,28 +444,32 @@ class EPOIngester(BaseIngester):
         events = []
         try:
             world_data = result.get("ops:world-patent-data", {})
-            legal_data = world_data.get("ops:register-search", {}).get(
-                "reg:register-documents", {}
-            ).get("reg:register-document", [])
+            legal_data = (
+                world_data.get("ops:register-search", {})
+                .get("reg:register-documents", {})
+                .get("reg:register-document", [])
+            )
 
             if isinstance(legal_data, dict):
                 legal_data = [legal_data]
 
             for doc in legal_data:
-                legal_events = doc.get("reg:bibliographic-data", {}).get(
-                    "reg:events", {}
-                ).get("reg:event", [])
+                legal_events = (
+                    doc.get("reg:bibliographic-data", {}).get("reg:events", {}).get("reg:event", [])
+                )
 
                 if isinstance(legal_events, dict):
                     legal_events = [legal_events]
 
                 for event in legal_events:
                     event_data = event.get("reg:event-data", {})
-                    events.append({
-                        "event_code": event_data.get("reg:event-code", {}).get("$", ""),
-                        "event_date": event_data.get("reg:event-date", {}).get("$", ""),
-                        "event_text": event_data.get("reg:event-text", {}).get("$", ""),
-                    })
+                    events.append(
+                        {
+                            "event_code": event_data.get("reg:event-code", {}).get("$", ""),
+                            "event_date": event_data.get("reg:event-date", {}).get("$", ""),
+                            "event_text": event_data.get("reg:event-text", {}).get("$", ""),
+                        }
+                    )
 
         except Exception as e:
             logger.warning("epo.parse_legal_error", error=str(e))
@@ -481,9 +481,7 @@ class EPOIngester(BaseIngester):
         members = []
         try:
             world_data = result.get("ops:world-patent-data", {})
-            family_data = world_data.get("ops:patent-family", {}).get(
-                "ops:family-member", []
-            )
+            family_data = world_data.get("ops:patent-family", {}).get("ops:family-member", [])
 
             if isinstance(family_data, dict):
                 family_data = [family_data]
@@ -499,11 +497,13 @@ class EPOIngester(BaseIngester):
                 kind = doc_id.get("kind", {}).get("$", "")
 
                 if doc_number:
-                    members.append({
-                        "patent_number": f"{country}{doc_number}{kind}",
-                        "country": country,
-                        "kind_code": kind,
-                    })
+                    members.append(
+                        {
+                            "patent_number": f"{country}{doc_number}{kind}",
+                            "country": country,
+                            "kind_code": kind,
+                        }
+                    )
 
         except Exception as e:
             logger.warning("epo.parse_family_error", error=str(e))

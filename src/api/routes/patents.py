@@ -67,27 +67,19 @@ async def patent_stats(
     total = (await session.execute(select(func.count(Patent.id)))).scalar() or 0
 
     active = (
-        await session.execute(
-            select(func.count(Patent.id)).where(Patent.status == "active")
-        )
+        await session.execute(select(func.count(Patent.id)).where(Patent.status == "active"))
     ).scalar() or 0
 
     expired = (
-        await session.execute(
-            select(func.count(Patent.id)).where(Patent.status == "expired")
-        )
+        await session.execute(select(func.count(Patent.id)).where(Patent.status == "expired"))
     ).scalar() or 0
 
     lapsed = (
-        await session.execute(
-            select(func.count(Patent.id)).where(Patent.status == "lapsed")
-        )
+        await session.execute(select(func.count(Patent.id)).where(Patent.status == "lapsed"))
     ).scalar() or 0
 
     countries = (
-        await session.execute(
-            select(func.count(func.distinct(Patent.country)))
-        )
+        await session.execute(select(func.count(func.distinct(Patent.country))))
     ).scalar() or 0
 
     return {

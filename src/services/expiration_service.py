@@ -34,16 +34,12 @@ class ExpirationService:
         if country:
             conditions.append(Patent.country == country)
         if cpc_code:
-            conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_code}%")
-            )
+            conditions.append(func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_code}%"))
         if assignee:
             conditions.append(Patent.assignee_organization.ilike(f"%{assignee}%"))
 
         base_query = (
-            select(Patent)
-            .where(and_(*conditions))
-            .options(selectinload(Patent.maintenance_fees))
+            select(Patent).where(and_(*conditions)).options(selectinload(Patent.maintenance_fees))
         )
 
         count_query = select(func.count()).select_from(
@@ -52,10 +48,7 @@ class ExpirationService:
         total = (await session.execute(count_query)).scalar() or 0
 
         results_query = (
-            base_query
-            .order_by(Patent.expiration_date.asc())
-            .offset(offset)
-            .limit(per_page)
+            base_query.order_by(Patent.expiration_date.asc()).offset(offset).limit(per_page)
         )
 
         result = await session.execute(results_query)
@@ -93,16 +86,12 @@ class ExpirationService:
         if country:
             conditions.append(Patent.country == country)
         if cpc_code:
-            conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_code}%")
-            )
+            conditions.append(func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_code}%"))
         if assignee:
             conditions.append(Patent.assignee_organization.ilike(f"%{assignee}%"))
 
         base_query = (
-            select(Patent)
-            .where(and_(*conditions))
-            .options(selectinload(Patent.maintenance_fees))
+            select(Patent).where(and_(*conditions)).options(selectinload(Patent.maintenance_fees))
         )
 
         count_query = select(func.count()).select_from(
@@ -111,10 +100,7 @@ class ExpirationService:
         total = (await session.execute(count_query)).scalar() or 0
 
         results_query = (
-            base_query
-            .order_by(Patent.expiration_date.desc())
-            .offset(offset)
-            .limit(per_page)
+            base_query.order_by(Patent.expiration_date.desc()).offset(offset).limit(per_page)
         )
 
         result = await session.execute(results_query)
@@ -153,10 +139,7 @@ class ExpirationService:
         total = (await session.execute(count_query)).scalar() or 0
 
         results_query = (
-            base_query
-            .order_by(MaintenanceFee.due_date.asc())
-            .offset(offset)
-            .limit(per_page)
+            base_query.order_by(MaintenanceFee.due_date.asc()).offset(offset).limit(per_page)
         )
 
         result = await session.execute(results_query)
@@ -164,17 +147,21 @@ class ExpirationService:
 
         items = []
         for fee, patent in rows:
-            items.append({
-                "patent_number": patent.patent_number,
-                "title": patent.title,
-                "assignee_organization": patent.assignee_organization,
-                "fee_year": fee.fee_year,
-                "due_date": fee.due_date.isoformat(),
-                "grace_period_end": fee.grace_period_end.isoformat() if fee.grace_period_end else None,
-                "amount_usd": fee.amount_usd,
-                "days_until_due": (fee.due_date - today).days,
-                "status": fee.status,
-            })
+            items.append(
+                {
+                    "patent_number": patent.patent_number,
+                    "title": patent.title,
+                    "assignee_organization": patent.assignee_organization,
+                    "fee_year": fee.fee_year,
+                    "due_date": fee.due_date.isoformat(),
+                    "grace_period_end": fee.grace_period_end.isoformat()
+                    if fee.grace_period_end
+                    else None,
+                    "amount_usd": fee.amount_usd,
+                    "days_until_due": (fee.due_date - today).days,
+                    "status": fee.status,
+                }
+            )
 
         return items, total
 
@@ -204,20 +191,22 @@ class ExpirationService:
         ]
         if country:
             lapsed_conditions.append(Patent.country == country)
-        lapsed_count = (await session.execute(
-            select(func.count(Patent.id)).where(and_(*lapsed_conditions))
-        )).scalar() or 0
+        lapsed_count = (
+            await session.execute(select(func.count(Patent.id)).where(and_(*lapsed_conditions)))
+        ).scalar() or 0
 
         # Pending maintenance fees
-        pending_fees = (await session.execute(
-            select(func.count(MaintenanceFee.id)).where(
-                and_(
-                    MaintenanceFee.status == "pending",
-                    MaintenanceFee.due_date >= today,
-                    MaintenanceFee.due_date <= today + timedelta(days=180),
+        pending_fees = (
+            await session.execute(
+                select(func.count(MaintenanceFee.id)).where(
+                    and_(
+                        MaintenanceFee.status == "pending",
+                        MaintenanceFee.due_date >= today,
+                        MaintenanceFee.due_date <= today + timedelta(days=180),
+                    )
                 )
             )
-        )).scalar() or 0
+        ).scalar() or 0
 
         # Top CPC codes expiring soon (90 days)
         top_cpc_query = (
@@ -225,20 +214,19 @@ class ExpirationService:
                 func.unnest(Patent.cpc_codes).label("cpc_code"),
                 func.count(Patent.id).label("count"),
             )
-            .where(and_(
-                *conditions_base,
-                Patent.expiration_date >= today,
-                Patent.expiration_date <= today + timedelta(days=90),
-            ))
+            .where(
+                and_(
+                    *conditions_base,
+                    Patent.expiration_date >= today,
+                    Patent.expiration_date <= today + timedelta(days=90),
+                )
+            )
             .group_by("cpc_code")
             .order_by(func.count(Patent.id).desc())
             .limit(10)
         )
         top_cpc_result = await session.execute(top_cpc_query)
-        top_cpc_sectors = [
-            {"cpc_code": row[0], "count": row[1]}
-            for row in top_cpc_result.all()
-        ]
+        top_cpc_sectors = [{"cpc_code": row[0], "count": row[1]} for row in top_cpc_result.all()]
 
         # Monthly expiration timeline (next 12 months) - single query
         first_month_start = date(today.year, today.month, 1)
@@ -246,19 +234,23 @@ class ExpirationService:
         end_month = today.month + 11
         end_year = today.year + (end_month - 1) // 12
         end_month_adj = ((end_month - 1) % 12) + 1
-        last_month_end = date(end_year + (end_month_adj // 12),
-                             (end_month_adj % 12) + 1, 1) - timedelta(days=1)
+        last_month_end = date(
+            end_year + (end_month_adj // 12), (end_month_adj % 12) + 1, 1
+        ) - timedelta(days=1)
 
         timeline_result = await session.execute(
             select(
                 extract("year", Patent.expiration_date).label("exp_year"),
                 extract("month", Patent.expiration_date).label("exp_month"),
                 func.count(Patent.id).label("count"),
-            ).where(and_(
-                *conditions_base,
-                Patent.expiration_date >= first_month_start,
-                Patent.expiration_date <= last_month_end,
-            ))
+            )
+            .where(
+                and_(
+                    *conditions_base,
+                    Patent.expiration_date >= first_month_start,
+                    Patent.expiration_date <= last_month_end,
+                )
+            )
             .group_by("exp_year", "exp_month")
             .order_by("exp_year", "exp_month")
         )
@@ -270,10 +262,12 @@ class ExpirationService:
             y = today.year + (m - 1) // 12
             m_adj = ((m - 1) % 12) + 1
             month_start = date(y, m_adj, 1)
-            timeline.append({
-                "month": month_start.isoformat(),
-                "count": month_counts.get((y, m_adj), 0),
-            })
+            timeline.append(
+                {
+                    "month": month_start.isoformat(),
+                    "count": month_counts.get((y, m_adj), 0),
+                }
+            )
 
         return {
             "expiring_30_days": window_30,
@@ -294,13 +288,17 @@ class ExpirationService:
         days: int,
     ) -> int:
         end_date = today + timedelta(days=days)
-        return (await session.execute(
-            select(func.count(Patent.id)).where(and_(
-                *base_conditions,
-                Patent.expiration_date >= today,
-                Patent.expiration_date <= end_date,
-            ))
-        )).scalar() or 0
+        return (
+            await session.execute(
+                select(func.count(Patent.id)).where(
+                    and_(
+                        *base_conditions,
+                        Patent.expiration_date >= today,
+                        Patent.expiration_date <= end_date,
+                    )
+                )
+            )
+        ).scalar() or 0
 
     def _to_expiration_item(self, patent: Patent, today: date) -> dict:
         """Convert a patent to an expiration item dict."""
@@ -311,8 +309,7 @@ class ExpirationService:
         if patent.maintenance_fees:
             pending_fees = [f for f in patent.maintenance_fees if f.status == "pending"]
             overdue_fees = [
-                f for f in patent.maintenance_fees
-                if f.status == "pending" and f.due_date < today
+                f for f in patent.maintenance_fees if f.status == "pending" and f.due_date < today
             ]
             if overdue_fees:
                 fee_status = "overdue"
@@ -333,8 +330,7 @@ class ExpirationService:
         next_fee_amount = None
         if patent.maintenance_fees:
             future_pending = [
-                f for f in patent.maintenance_fees
-                if f.status == "pending" and f.due_date >= today
+                f for f in patent.maintenance_fees if f.status == "pending" and f.due_date >= today
             ]
             if future_pending:
                 next_fee = min(future_pending, key=lambda f: f.due_date)
@@ -345,7 +341,9 @@ class ExpirationService:
             "patent_number": patent.patent_number,
             "title": patent.title,
             "abstract": patent.abstract,
-            "expiration_date": patent.expiration_date.isoformat() if patent.expiration_date else None,
+            "expiration_date": patent.expiration_date.isoformat()
+            if patent.expiration_date
+            else None,
             "filing_date": patent.filing_date.isoformat() if patent.filing_date else None,
             "grant_date": patent.grant_date.isoformat() if patent.grant_date else None,
             "assignee_organization": patent.assignee_organization,

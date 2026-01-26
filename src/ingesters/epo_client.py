@@ -5,6 +5,7 @@ DOCDB (bibliographic), INPADOC (legal status), and family data.
 
 API Documentation: https://www.epo.org/searching-for-patents/data/web-services/ops.html
 """
+
 import base64
 from datetime import UTC, datetime, timedelta
 

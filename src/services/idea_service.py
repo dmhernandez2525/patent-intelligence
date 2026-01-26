@@ -3,6 +3,7 @@
 Uses LLM (Claude/OpenAI) to generate invention ideas from expiring patents,
 technology trends, and cross-domain combinations.
 """
+
 import json
 from datetime import date, timedelta
 
@@ -93,7 +94,7 @@ class IdeaGenerationService:
         ]
         if cpc_prefix:
             expiry_conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
+                func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
             )
 
         expiring_result = await session.execute(
@@ -125,7 +126,7 @@ class IdeaGenerationService:
         ]
         if cpc_prefix:
             growth_conditions.append(
-                func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
+                func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
             )
 
         cpc_unnest = func.unnest(Patent.cpc_codes).label("cpc_code")
@@ -150,7 +151,7 @@ class IdeaGenerationService:
             ]
             if cpc_prefix:
                 impact_conditions.append(
-                    func.array_to_string(Patent.cpc_codes, ',').ilike(f"%{cpc_prefix}%")
+                    func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{cpc_prefix}%")
                 )
 
             impact_result = await session.execute(

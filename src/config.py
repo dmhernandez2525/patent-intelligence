@@ -48,14 +48,15 @@ class Settings(BaseSettings):
             if not self.debug:
                 raise ValueError(
                     "SECRET_KEY environment variable must be set in production. "
-                    "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                    'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
                 )
             # In debug mode, generate a temporary key (will invalidate on restart)
             import warnings
+
             warnings.warn(
                 "Using auto-generated SECRET_KEY in debug mode. "
                 "Set SECRET_KEY env var for persistent sessions.",
-                RuntimeWarning
+                RuntimeWarning,
             )
             return secrets.token_urlsafe(32)
         return self.secret_key
