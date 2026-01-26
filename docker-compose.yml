@@ -1,3 +1,5 @@
+name: patent-intelligence
+
 version: '3.8'
 
 services:
