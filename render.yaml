@@ -1,38 +1,10 @@
-services:
-  - type: web
-    name: patent-intelligence-api
-    runtime: python
-    plan: starter
-    region: oregon
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn src.api.main:app --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --workers 2 --timeout 120
-    healthCheckPath: /api/health
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: patent-intelligence-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: patent-intelligence-cache
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: patent-intelligence-cache
-          property: connectionString
-      - key: PYTHON_VERSION
-        value: "3.11.9"
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
-      - key: SECRET_KEY
-        generateValue: true
-      - key: ALLOWED_ORIGINS
-        value: "https://patent-intelligence.onrender.com"
+# Patent Intelligence - Render Infrastructure Configuration
+# =========================================================
+# Static site deployment for the Patent Intelligence frontend.
+# Backend services (API, worker, Redis, DB) are managed separately.
 
+services:
+  # Static Site - React/Vite Frontend
   - type: web
     name: patent-intelligence
     runtime: static
@@ -47,49 +19,14 @@ services:
       - path: /assets/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
     envVars:
+      - key: NODE_VERSION
+        value: "20"
       - key: VITE_API_URL
-        value: "https://patent-intelligence-api.onrender.com"
-
-  - type: worker
-    name: patent-intelligence-worker
-    runtime: python
-    plan: starter
-    region: oregon
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A src.pipeline.orchestrator worker --loglevel=info --concurrency=2
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: patent-intelligence-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: patent-intelligence-cache
-          property: connectionString
-      - key: CELERY_BROKER_URL
-        fromService:
-          type: redis
-          name: patent-intelligence-cache
-          property: connectionString
-      - key: PYTHON_VERSION
-        value: "3.11.9"
-      - key: OPENAI_API_KEY
         sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
-
-  - type: redis
-    name: patent-intelligence-cache
-    plan: starter
-    region: oregon
-    maxmemoryPolicy: allkeys-lru
-    ipAllowList: []
-
-databases:
-  - name: patent-intelligence-db
-    plan: basic-256mb
-    region: oregon
-    postgresMajorVersion: "16"
-    ipAllowList: []
