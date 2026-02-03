@@ -78,10 +78,9 @@ async def trigger_ingestion(
     try:
         from src.pipeline.orchestrator import ingest_patents_task
 
-        _since = None  # TODO: Pass to ingest_patents_task when supported
         if request.since_date:
             try:
-                _since = datetime.strptime(request.since_date, "%Y-%m-%d")
+                datetime.strptime(request.since_date, "%Y-%m-%d")
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid since_date format")
 
@@ -89,6 +88,8 @@ async def trigger_ingestion(
             source=request.source,
             batch_size=request.batch_size,
             max_patents=request.max_patents,
+            since_date=request.since_date,
+            job_id=job.id,
         )
         job.celery_task_id = task.id
         job.status = "running"
