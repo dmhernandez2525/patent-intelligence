@@ -1,7 +1,7 @@
 """Watchlist and Alert models for tracking patents and notifications."""
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import (
     Boolean,
@@ -18,7 +18,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models.base import Base, TimestampMixin
 
 
-class WatchItemType(str, Enum):
+class WatchItemType(StrEnum):
     """Types of items that can be watched."""
 
     PATENT = "patent"
@@ -27,7 +27,7 @@ class WatchItemType(str, Enum):
     INVENTOR = "inventor"
 
 
-class AlertType(str, Enum):
+class AlertType(StrEnum):
     """Types of alerts."""
 
     EXPIRATION = "expiration"
@@ -37,7 +37,7 @@ class AlertType(str, Enum):
     NEW_PATENT = "new_patent"
 
 
-class AlertPriority(str, Enum):
+class AlertPriority(StrEnum):
     """Alert priority levels."""
 
     LOW = "low"
