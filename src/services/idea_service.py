@@ -19,10 +19,10 @@ from src.utils.logger import logger
 class IdeaGenerationService:
     """Service for generating invention ideas from patent intelligence."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._http_client: httpx.AsyncClient | None = None
 
-    async def _get_http_client(self):
+    async def _get_http_client(self) -> httpx.AsyncClient:
         if self._http_client is None or self._http_client.is_closed:
             self._http_client = httpx.AsyncClient(timeout=60.0)
         return self._http_client

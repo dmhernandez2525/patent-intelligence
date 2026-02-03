@@ -1,3 +1,6 @@
+from collections.abc import Coroutine
+from typing import Any, TypeVar
+
 from celery import Celery
 
 from src.config import settings
@@ -22,7 +25,10 @@ celery_app.conf.update(
 )
 
 
-def _run_async(coro):
+T = TypeVar("T")
+
+
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:
     """Run an async coroutine in a way compatible with Celery workers."""
     import asyncio
 
@@ -38,21 +44,24 @@ def _run_async(coro):
     return asyncio.run(coro)
 
 
-@celery_app.task(name="pipeline.ingest_patents", bind=True)
-def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: int | None = None):
+@celery_app.task(name="pipeline.ingest_patents", bind=True)  # type: ignore[untyped-decorator]
+def ingest_patents_task(
+    self: Any, source: str, batch_size: int = 100, max_patents: int | None = None
+) -> dict[str, Any]:
     """Background task for patent ingestion with database storage."""
     from src.utils.logger import logger
 
     logger.info("task.ingest_patents.started", source=source, task_id=self.request.id)
 
-    async def _run():
+    async def _run() -> dict[str, Any]:
         from src.database.connection import get_db_session
+        from src.ingesters.base import BaseIngester
         from src.pipeline.patent_store import store_patent_batch
 
         if source == "uspto":
             from src.ingesters.uspto_ingester import USPTOIngester
 
-            ingester = USPTOIngester()
+            ingester: BaseIngester = USPTOIngester()
         elif source == "epo":
             from src.ingesters.epo_ingester import EPOIngester
 
@@ -114,14 +123,16 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
     return result
 
 
-@celery_app.task(name="pipeline.generate_embeddings", bind=True)
-def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_size: int = 32):
+@celery_app.task(name="pipeline.generate_embeddings", bind=True)  # type: ignore[untyped-decorator]
+def generate_embeddings_task(
+    self: Any, patent_ids: list[int] | None = None, batch_size: int = 32
+) -> dict[str, Any]:
     """Background task for generating patent embeddings."""
     from src.utils.logger import logger
 
     logger.info("task.generate_embeddings.started", task_id=self.request.id)
 
-    async def _run():
+    async def _run() -> int:
         from src.ai.embeddings import embedding_service
         from src.database.connection import get_db_session
 

@@ -3,8 +3,8 @@ from datetime import date, timedelta
 from src.pipeline.expiration_calc import (
     calculate_expiration_date,
     calculate_maintenance_fee_dates,
-    determine_patent_status,
     days_until_expiration,
+    determine_patent_status,
 )
 
 

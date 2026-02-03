@@ -1,5 +1,5 @@
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 
 from src.ingesters.uspto_ingester import USPTOIngester
 

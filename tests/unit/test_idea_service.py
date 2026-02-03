@@ -1,6 +1,6 @@
-import pytest
 import json
-from unittest.mock import MagicMock, patch
+
+import pytest
 
 from src.services.idea_service import IdeaGenerationService
 
@@ -201,8 +201,9 @@ class TestIdeaSchemas:
         assert req.count == 8
 
     def test_idea_request_validation(self):
-        from src.api.schemas.ideas import IdeaRequest
         from pydantic import ValidationError
+
+        from src.api.schemas.ideas import IdeaRequest
 
         with pytest.raises(ValidationError):
             IdeaRequest(count=0)  # ge=1
@@ -228,8 +229,9 @@ class TestIdeaSchemas:
         assert idea.novelty_score == 0.8
 
     def test_generated_idea_score_bounds(self):
-        from src.api.schemas.ideas import GeneratedIdea
         from pydantic import ValidationError
+
+        from src.api.schemas.ideas import GeneratedIdea
 
         with pytest.raises(ValidationError):
             GeneratedIdea(
@@ -238,7 +240,7 @@ class TestIdeaSchemas:
             )
 
     def test_idea_response(self):
-        from src.api.schemas.ideas import IdeaResponse, GeneratedIdea
+        from src.api.schemas.ideas import GeneratedIdea, IdeaResponse
 
         resp = IdeaResponse(
             ideas=[
@@ -256,7 +258,7 @@ class TestIdeaSchemas:
         assert resp.seed_patents_used == 5
 
     def test_seed_response(self):
-        from src.api.schemas.ideas import SeedResponse, SeedPatent, GrowthArea
+        from src.api.schemas.ideas import GrowthArea, SeedPatent, SeedResponse
 
         resp = SeedResponse(
             expiring_patents=[

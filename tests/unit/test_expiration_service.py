@@ -1,6 +1,7 @@
-import pytest
 from datetime import date, timedelta
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.services.expiration_service import ExpirationService
 

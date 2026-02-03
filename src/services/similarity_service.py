@@ -5,6 +5,7 @@ networks for prior art analysis.
 """
 
 from datetime import date
+from typing import Any
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +16,8 @@ from src.models.patent import Citation, Patent
 class SimilarityService:
     """Service for finding similar patents and prior art."""
 
-    def __init__(self):
-        self._embedding_service = None
+    def __init__(self) -> None:
+        self._embedding_service: object | None = None
 
     @property
     def embedding_service(self):
@@ -61,7 +62,7 @@ class SimilarityService:
         distance = Patent.embedding.cosine_distance(query_embedding)
         similarity = (1 - distance).label("similarity_score")
 
-        conditions = [Patent.embedding.isnot(None)]
+        conditions: list[Any] = [Patent.embedding.isnot(None)]
 
         if patent_number:
             conditions.append(Patent.patent_number != patent_number)
@@ -244,7 +245,7 @@ class SimilarityService:
         distance = Patent.embedding.cosine_distance(embedding)
         similarity = (1 - distance).label("similarity_score")
 
-        conditions = [Patent.embedding.isnot(None)]
+        conditions: list[Any] = [Patent.embedding.isnot(None)]
         if patent_number:
             conditions.append(Patent.patent_number != patent_number)
         if before_date:
@@ -351,13 +352,13 @@ class SimilarityService:
         if not cpc_prefixes:
             return []
 
-        conditions = [
+        conditions: list[Any] = [
             Patent.assignee_organization.isnot(None),
             Patent.assignee_organization != target.assignee_organization,
         ]
 
         # Match any CPC prefix using string matching for prefix support
-        cpc_conditions = [
+        cpc_conditions: list[Any] = [
             func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{prefix}%")
             for prefix in cpc_prefixes
         ]

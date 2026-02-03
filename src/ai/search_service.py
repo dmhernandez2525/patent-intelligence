@@ -12,8 +12,8 @@ def _escape_like(value: str) -> str:
 class PatentSearchService:
     """Service for full-text, semantic, and hybrid patent search."""
 
-    def __init__(self):
-        self._embedding_service = None
+    def __init__(self) -> None:
+        self._embedding_service: object | None = None
 
     @property
     def embedding_service(self):

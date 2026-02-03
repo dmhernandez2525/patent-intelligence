@@ -7,6 +7,7 @@ from src.api.schemas.similarity import (
     PriorArtResponse,
     SimilarityRequest,
     SimilarityResponse,
+    SimilarPatentItem,
 )
 from src.database.connection import get_session
 from src.services.similarity_service import similarity_service
@@ -45,11 +46,13 @@ async def find_similar_patents(
         cpc_code=request.cpc_code,
     )
 
+    typed_results = [SimilarPatentItem(**r) for r in results]
+
     return SimilarityResponse(
-        results=results,
+        results=typed_results,
         query_patent=request.patent_number,
         query_text=request.text_query,
-        total_found=len(results),
+        total_found=len(typed_results),
     )
 
 
@@ -80,6 +83,8 @@ async def find_prior_art(
         min_score=request.min_score,
     )
 
+    if "prior_art" in result:
+        result["prior_art"] = [SimilarPatentItem(**r) for r in result["prior_art"]]
     return PriorArtResponse(**result)
 
 

@@ -70,6 +70,10 @@ class BaseIngester(ABC):
         """Fetch detailed data for a single patent."""
         ...  # pragma: no cover
 
+    async def close(self) -> None:
+        """Close any open resources."""
+        return
+
     async def validate_connection(self) -> bool:
         """Validate that the data source is accessible."""
         try:
@@ -78,6 +82,7 @@ class BaseIngester(ABC):
         except Exception as e:
             logger.error("ingester.connection_failed", source=self.source_name, error=str(e))
             return False
+        return False
 
     async def run_ingestion(
         self,

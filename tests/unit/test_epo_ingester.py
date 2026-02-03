@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+# ruff: noqa: S105, S106
+
 from datetime import datetime
 
+import pytest
+
+from src.ingesters.epo_client import EPOAPIError, EPOAuthError, EPOClient
 from src.ingesters.epo_ingester import EPOIngester
-from src.ingesters.epo_client import EPOClient, EPOAuthError, EPOAPIError
 
 
 class TestEPOClient:

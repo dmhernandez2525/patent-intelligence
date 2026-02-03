@@ -1,11 +1,12 @@
 """Unit tests for watchlist service."""
 
-import pytest
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime, timezone
 
+import pytest
+
+from src.models.watchlist import Alert, WatchlistItem
 from src.services.watchlist_service import WatchlistService
-from src.models.watchlist import WatchlistItem, Alert
 
 
 @pytest.fixture
@@ -84,7 +85,7 @@ class TestWatchlistService:
         item.expiration_lead_days = 90
         item.maintenance_lead_days = 30
         item.is_active = True
-        item.created_at = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        item.created_at = datetime(2025, 1, 1, tzinfo=UTC)
         item.alerts = []
 
         result = watchlist_service._to_watchlist_dict(item)
@@ -137,11 +138,11 @@ class TestWatchlistService:
         alert.message = "Your patent is expiring soon"
         alert.related_patent_number = "US12345678"
         alert.related_data = {"foo": "bar"}
-        alert.trigger_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        alert.due_date = datetime(2025, 4, 1, tzinfo=timezone.utc)
+        alert.trigger_date = datetime(2025, 1, 1, tzinfo=UTC)
+        alert.due_date = datetime(2025, 4, 1, tzinfo=UTC)
         alert.is_read = False
         alert.is_dismissed = False
-        alert.created_at = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        alert.created_at = datetime(2025, 1, 1, tzinfo=UTC)
 
         result = watchlist_service._to_alert_dict(alert)
 

@@ -18,7 +18,7 @@ class EPOIngester(BaseIngester):
 
     source_name = "epo"
 
-    def __init__(self, consumer_key: str | None = None, consumer_secret: str | None = None):
+    def __init__(self, consumer_key: str | None = None, consumer_secret: str | None = None) -> None:
         self.client = EPOClient(
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
@@ -275,13 +275,13 @@ class EPOIngester(BaseIngester):
             if isinstance(title_entry, dict):
                 lang = title_entry.get("@lang", "")
                 if lang == "en":
-                    return title_entry.get("$", "")
+                    return str(title_entry.get("$", ""))
 
         # Fallback to first available title
         if invention_title:
             entry = invention_title[0]
             if isinstance(entry, dict):
-                return entry.get("$", "")
+                return str(entry.get("$", ""))
             return str(entry) if entry else None
 
         return None
@@ -517,13 +517,13 @@ class EPOIngester(BaseIngester):
         if isinstance(paragraphs, str):
             return paragraphs
         if isinstance(paragraphs, dict):
-            return paragraphs.get("$", "")
+            return str(paragraphs.get("$", ""))
         if isinstance(paragraphs, list):
             texts = []
             for p in paragraphs:
                 if isinstance(p, str):
                     texts.append(p)
                 elif isinstance(p, dict):
-                    texts.append(p.get("$", ""))
+                    texts.append(str(p.get("$", "")))
             return " ".join(texts) if texts else None
         return None

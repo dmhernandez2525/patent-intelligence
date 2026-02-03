@@ -5,6 +5,8 @@ from src.api.schemas.expiration import (
     ExpirationDashboardResponse,
     ExpirationListResponse,
     ExpirationStatsResponse,
+    ExpiringPatentItem,
+    MaintenanceFeeItem,
     MaintenanceFeeListResponse,
 )
 from src.database.connection import get_session
@@ -22,20 +24,24 @@ async def expiration_dashboard(
     """Get expiration dashboard with stats, upcoming expirations, and fees."""
     logger.info("expiration.dashboard", country=country)
 
-    stats = await expiration_service.get_expiration_stats(session, country=country)
-    expiring_soon, _ = await expiration_service.get_expiring_patents(
+    stats = ExpirationStatsResponse(
+        **await expiration_service.get_expiration_stats(session, country=country)
+    )
+    expiring_soon_raw, _ = await expiration_service.get_expiring_patents(
         session, days=30, country=country, per_page=10
     )
-    lapsed, _ = await expiration_service.get_lapsed_patents(
+    lapsed_raw, _ = await expiration_service.get_lapsed_patents(
         session, days_back=90, country=country, per_page=10
     )
-    fees, _ = await expiration_service.get_upcoming_maintenance_fees(session, days=90, per_page=10)
+    fees_raw, _ = await expiration_service.get_upcoming_maintenance_fees(
+        session, days=90, per_page=10
+    )
 
     return ExpirationDashboardResponse(
         stats=stats,
-        expiring_soon=expiring_soon,
-        recently_lapsed=lapsed,
-        upcoming_fees=fees,
+        expiring_soon=[ExpiringPatentItem(**p) for p in expiring_soon_raw],
+        recently_lapsed=[ExpiringPatentItem(**p) for p in lapsed_raw],
+        upcoming_fees=[MaintenanceFeeItem(**f) for f in fees_raw],
     )
 
 
@@ -52,7 +58,7 @@ async def upcoming_expirations(
     """Get patents expiring within a specified time window."""
     logger.info("expiration.upcoming", days=days, country=country, page=page)
 
-    patents, total = await expiration_service.get_expiring_patents(
+    patents_raw, total = await expiration_service.get_expiring_patents(
         session,
         days=days,
         country=country,
@@ -63,7 +69,7 @@ async def upcoming_expirations(
     )
 
     return ExpirationListResponse(
-        patents=patents,
+        patents=[ExpiringPatentItem(**p) for p in patents_raw],
         total=total,
         page=page,
         per_page=per_page,
@@ -83,7 +89,7 @@ async def lapsed_patents(
     """Get recently lapsed patents (expired or missed maintenance fees)."""
     logger.info("expiration.lapsed", days_back=days_back, country=country, page=page)
 
-    patents, total = await expiration_service.get_lapsed_patents(
+    patents_raw, total = await expiration_service.get_lapsed_patents(
         session,
         days_back=days_back,
         country=country,
@@ -94,7 +100,7 @@ async def lapsed_patents(
     )
 
     return ExpirationListResponse(
-        patents=patents,
+        patents=[ExpiringPatentItem(**p) for p in patents_raw],
         total=total,
         page=page,
         per_page=per_page,
@@ -111,12 +117,12 @@ async def maintenance_fees(
     """Get upcoming maintenance fee deadlines."""
     logger.info("expiration.maintenance_fees", days=days, page=page)
 
-    fees, total = await expiration_service.get_upcoming_maintenance_fees(
+    fees_raw, total = await expiration_service.get_upcoming_maintenance_fees(
         session, days=days, page=page, per_page=per_page
     )
 
     return MaintenanceFeeListResponse(
-        fees=fees,
+        fees=[MaintenanceFeeItem(**f) for f in fees_raw],
         total=total,
         page=page,
         per_page=per_page,

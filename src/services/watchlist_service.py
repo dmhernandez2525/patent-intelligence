@@ -1,8 +1,10 @@
 """Watchlist service for managing watched patents and alerts."""
 
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 from sqlalchemy import and_, delete, func, select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -116,15 +118,18 @@ class WatchlistService:
         user_id: str = "default",
     ) -> bool:
         """Remove an item from watchlist."""
-        result = await session.execute(
+        result = cast(
+            CursorResult[Any],
+            await session.execute(
             delete(WatchlistItem).where(
                 and_(
                     WatchlistItem.id == item_id,
                     WatchlistItem.user_id == user_id,
                 )
             )
+            ),
         )
-        deleted = result.rowcount > 0
+        deleted = (result.rowcount or 0) > 0
 
         if deleted:
             logger.info("watchlist.removed", user_id=user_id, item_id=item_id)
