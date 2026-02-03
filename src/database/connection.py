@@ -14,10 +14,11 @@ def _normalize_database_url(url: str) -> str:
     if url.startswith("postgresql+asyncpg://"):
         return url
     if url.startswith("postgres://"):
-        return f"postgresql+asyncpg://{url[len('postgres://'):]}"
+        return f"postgresql+asyncpg://{url[len('postgres://') :]}"
     if url.startswith("postgresql://"):
-        return f"postgresql+asyncpg://{url[len('postgresql://'):]}"
+        return f"postgresql+asyncpg://{url[len('postgresql://') :]}"
     return url
+
 
 engine = create_async_engine(
     _normalize_database_url(settings.database_url),
