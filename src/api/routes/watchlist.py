@@ -146,19 +146,19 @@ async def add_to_watchlist(
     )
 
     try:
-    item = await watchlist_service.add_to_watchlist(
-        session,
-        item_type=request.item_type,
-        item_value=request.item_value,
-        name=request.name,
-        notes=request.notes,
-        notify_expiration=request.notify_expiration,
-        notify_maintenance=request.notify_maintenance,
-        notify_citations=request.notify_citations,
-        notify_new_patents=request.notify_new_patents,
-        expiration_lead_days=request.expiration_lead_days,
-        maintenance_lead_days=request.maintenance_lead_days,
-    )
+        item = await watchlist_service.add_to_watchlist(
+            session,
+            item_type=request.item_type,
+            item_value=request.item_value,
+            name=request.name,
+            notes=request.notes,
+            notify_expiration=request.notify_expiration,
+            notify_maintenance=request.notify_maintenance,
+            notify_citations=request.notify_citations,
+            notify_new_patents=request.notify_new_patents,
+            expiration_lead_days=request.expiration_lead_days,
+            maintenance_lead_days=request.maintenance_lead_days,
+        )
         await session.commit()
         return WatchlistItemResponse(**item)
     except ValueError as e:
