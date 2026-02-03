@@ -9,8 +9,18 @@ from sqlalchemy.ext.asyncio import (
 
 from src.config import settings
 
+
+def _normalize_database_url(url: str) -> str:
+    if url.startswith("postgresql+asyncpg://"):
+        return url
+    if url.startswith("postgres://"):
+        return f"postgresql+asyncpg://{url[len('postgres://'):]}"
+    if url.startswith("postgresql://"):
+        return f"postgresql+asyncpg://{url[len('postgresql://'):]}"
+    return url
+
 engine = create_async_engine(
-    settings.database_url,
+    _normalize_database_url(settings.database_url),
     pool_size=settings.database_pool_size,
     max_overflow=settings.database_max_overflow,
     echo=settings.debug,

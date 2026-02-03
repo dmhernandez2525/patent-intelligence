@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 class IngestionTriggerRequest(BaseModel):
-    source: str = Field(default="uspto", pattern="^(uspto|epo|bigquery)$")
+    source: str = Field(default="uspto", pattern="^(uspto|epo)$")
     batch_size: int = Field(default=100, ge=10, le=1000)
     max_patents: int | None = Field(default=1000, ge=1, le=100000)
     since_date: str | None = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
