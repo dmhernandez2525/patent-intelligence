@@ -20,7 +20,10 @@ class WatchlistAddRequest(BaseModel):
     notes: str | None = Field(None, max_length=1000)
     notify_expiration: bool = True
     notify_maintenance: bool = True
+    notify_citations: bool = False
+    notify_new_patents: bool = False
     expiration_lead_days: int = Field(default=90, ge=1, le=365)
+    maintenance_lead_days: int = Field(default=30, ge=1, le=180)
 
 
 class WatchlistUpdateRequest(BaseModel):
@@ -143,16 +146,19 @@ async def add_to_watchlist(
     )
 
     try:
-        item = await watchlist_service.add_to_watchlist(
-            session,
-            item_type=request.item_type,
-            item_value=request.item_value,
-            name=request.name,
-            notes=request.notes,
-            notify_expiration=request.notify_expiration,
-            notify_maintenance=request.notify_maintenance,
-            expiration_lead_days=request.expiration_lead_days,
-        )
+    item = await watchlist_service.add_to_watchlist(
+        session,
+        item_type=request.item_type,
+        item_value=request.item_value,
+        name=request.name,
+        notes=request.notes,
+        notify_expiration=request.notify_expiration,
+        notify_maintenance=request.notify_maintenance,
+        notify_citations=request.notify_citations,
+        notify_new_patents=request.notify_new_patents,
+        expiration_lead_days=request.expiration_lead_days,
+        maintenance_lead_days=request.maintenance_lead_days,
+    )
         await session.commit()
         return WatchlistItemResponse(**item)
     except ValueError as e:
