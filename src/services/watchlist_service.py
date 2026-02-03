@@ -121,12 +121,12 @@ class WatchlistService:
         result = cast(
             CursorResult[Any],
             await session.execute(
-            delete(WatchlistItem).where(
-                and_(
-                    WatchlistItem.id == item_id,
-                    WatchlistItem.user_id == user_id,
+                delete(WatchlistItem).where(
+                    and_(
+                        WatchlistItem.id == item_id,
+                        WatchlistItem.user_id == user_id,
+                    )
                 )
-            )
             ),
         )
         deleted = (result.rowcount or 0) > 0
