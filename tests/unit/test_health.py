@@ -56,20 +56,13 @@ async def test_search_endpoint_validates_input():
     # Create mock session and search service
     mock_session = AsyncMock()
 
-    with patch("src.api.routes.search.PatentSearchService") as mock_search_class:
-        mock_service = mock_search_class.return_value
-        mock_service.search = AsyncMock(
-            return_value={
-                "query": "battery technology",
-                "search_type": "hybrid",
-                "total_results": 0,
-                "patents": [],
-                "facets": {},
-            }
+    with patch("src.api.routes.search.search_service") as mock_search_service:
+        mock_search_service.hybrid_search = AsyncMock(
+            return_value=([], 0)  # Returns (results, total)
         )
 
         request = SearchRequest(query="battery technology")
         result = await search_patents(request=request, session=mock_session)
 
-        assert result["query"] == "battery technology"
-        assert result["search_type"] == "hybrid"
+        assert result.query == "battery technology"
+        assert result.search_type == "hybrid"
