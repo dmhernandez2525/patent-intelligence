@@ -216,30 +216,30 @@ function WatchlistPage() {
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className="text-xs font-medium text-gray-600">Type</label>
-              <select
-                value={newItem.item_type}
-                onChange={(e) => {
-                  const nextType = e.target.value
-                  setNewItem({
-                    ...newItem,
-                    item_type: nextType,
-                    notify_expiration: nextType === 'patent',
-                    notify_maintenance: nextType === 'patent',
-                    notify_citations: false,
-                    notify_new_patents: nextType !== 'patent',
-                  })
-                }}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              >
-                <option value="patent">Patent</option>
-                <option value="cpc_code">CPC Code</option>
-                <option value="assignee">Assignee</option>
-                <option value="inventor">Inventor</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-600">Value</label>
-              <input
+                <select
+                  value={newItem.item_type}
+                  onChange={(e) => {
+                    const nextType = e.target.value
+                    setNewItem({
+                      ...newItem,
+                      item_type: nextType,
+                      notify_expiration: nextType === 'patent',
+                      notify_maintenance: nextType === 'patent',
+                      notify_citations: false,
+                      notify_new_patents: nextType !== 'patent',
+                    })
+                  }}
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                >
+                  <option value="patent">Patent</option>
+                  <option value="cpc_code">CPC Code</option>
+                  <option value="assignee">Assignee</option>
+                  <option value="inventor">Inventor</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600">Value</label>
+                <input
                   type="text"
                   value={newItem.item_value}
                   onChange={(e) => setNewItem({ ...newItem, item_value: e.target.value })}
