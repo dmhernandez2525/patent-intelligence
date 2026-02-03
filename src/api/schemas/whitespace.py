@@ -93,3 +93,43 @@ class SectionOverviewResponse(BaseModel):
     sections: list[SectionInfo]
     total_patents: int
     analysis_years: int
+
+
+class SectionClassInfo(BaseModel):
+    """Top CPC class within a section."""
+
+    cpc_code: str
+    patent_count: int
+    avg_citations: float
+
+
+class SectionAssigneeInfo(BaseModel):
+    """Top assignee within a section."""
+
+    assignee: str
+    patent_count: int
+
+
+class SectionYearlyTrend(BaseModel):
+    """Yearly filing trend for a section."""
+
+    year: int
+    patent_count: int
+
+
+class SectionDetailResponse(BaseModel):
+    """Detailed response for a CPC section."""
+
+    section: str
+    section_name: str
+    total_patents: int
+    active_patents: int
+    expired_patents: int
+    lapsed_patents: int
+    active_ratio: float
+    recent_patents: int
+    analysis_years: int
+    recent_years: int
+    top_cpc_classes: list[SectionClassInfo]
+    top_assignees: list[SectionAssigneeInfo]
+    filing_trend: list[SectionYearlyTrend]
