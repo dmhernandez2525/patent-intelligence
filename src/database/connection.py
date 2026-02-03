@@ -11,6 +11,8 @@ from src.config import settings
 
 
 def _normalize_database_url(url: str) -> str:
+    if not url:
+        raise ValueError("DATABASE_URL is not set")
     if url.startswith("postgresql+asyncpg://"):
         return url
     if url.startswith("postgres://"):
