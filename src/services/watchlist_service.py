@@ -315,6 +315,21 @@ class WatchlistService:
 
         return alerts_created
 
+    async def generate_alerts_for_all_users(self, session: AsyncSession) -> int:
+        """Generate alerts for every active watchlist user."""
+        user_result = await session.execute(
+            select(WatchlistItem.user_id)
+            .where(WatchlistItem.is_active == True)
+            .distinct()
+        )
+        user_ids = [row[0] for row in user_result.all()]
+
+        total_created = 0
+        for user_id in user_ids:
+            total_created += await self.generate_alerts(session, user_id=user_id)
+
+        return total_created
+
     async def _check_expiration_alert(
         self,
         session: AsyncSession,

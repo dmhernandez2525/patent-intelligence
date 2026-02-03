@@ -276,7 +276,7 @@ async def generate_alerts(
     """Generate alerts for watchlist items (admin/cron endpoint)."""
     logger.info("watchlist.generate_alerts")
 
-    count = await watchlist_service.generate_alerts(session)
+    count = await watchlist_service.generate_alerts_for_all_users(session)
     await session.commit()
 
     return {"success": True, "alerts_created": count}
