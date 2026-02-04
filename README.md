@@ -62,11 +62,11 @@ Real-time intelligence dashboard showing:
             └──────┬───────┘  └──────────────┘  └──────────────┘
                    │
      ┌─────────────┼─────────────┐
-     ▼             ▼             ▼
-┌─────────┐  ┌─────────┐  ┌─────────┐
-│  USPTO  │  │   EPO   │  │BigQuery │
-│Ingester │  │Ingester │  │Ingester │
-└─────────┘  └─────────┘  └─────────┘
+     ▼             ▼
+┌─────────┐  ┌─────────┐
+│  USPTO  │  │   EPO   │
+│Ingester │  │Ingester │
+└─────────┘  └─────────┘
 ```
 
 ## Tech Stack
@@ -75,11 +75,11 @@ Real-time intelligence dashboard showing:
 |-------|-------------|
 | **Backend** | Python 3.11+, FastAPI, SQLAlchemy 2.0 (async), Pydantic v2, Celery |
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, TanStack Query, Lucide Icons |
-| **Database** | PostgreSQL 16 with pgvector extension for vector similarity search |
-| **AI/ML** | PatentSBERTa embeddings (384-dim), Claude/GPT-4 for idea generation |
+| **Database** | PostgreSQL 16 with pgvector extension (768-dim) for vector similarity search |
+| **AI/ML** | PatentSBERTa embeddings (768-dim), Claude Sonnet / GPT-4o for idea generation |
 | **Caching** | Redis for session cache and rate limiting |
 | **Infrastructure** | Docker, GitHub Actions CI/CD, Render deployment |
-| **Testing** | pytest (166 tests), pytest-asyncio, pytest-cov |
+| **Testing** | pytest, pytest-asyncio, pytest-cov |
 
 ## Quick Start
 
@@ -156,18 +156,27 @@ docker compose up -d --build
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/patents` | GET | List patents with pagination and filters |
-| `/api/patents/{id}` | GET | Get patent details by ID |
-| `/api/patents/search` | GET | Semantic search with embeddings |
-| `/api/patents/{id}/similar` | GET | Find similar patents |
+| `/api/patents/{patent_number}` | GET | Get patent details by patent number |
+| `/api/patents/stats/overview` | GET | Patent counts overview |
+| `/api/search` | POST | Semantic/fulltext/hybrid search |
 
 ### Expiration Intelligence
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/expirations/upcoming` | GET | Patents expiring within timeframe |
-| `/api/expirations/maintenance` | GET | Upcoming maintenance fees |
-| `/api/expirations/lapsed` | GET | Recently lapsed patents |
-| `/api/expirations/timeline` | GET | Expiration timeline by month |
+| `/api/expiration/dashboard` | GET | Dashboard aggregates |
+| `/api/expiration/upcoming` | GET | Patents expiring within timeframe |
+| `/api/expiration/maintenance-fees` | GET | Upcoming maintenance fees |
+| `/api/expiration/lapsed` | GET | Recently lapsed patents |
+| `/api/expiration/stats` | GET | Expiration statistics |
+
+### Similarity & Prior Art
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/similarity/similar` | POST | Find similar patents |
+| `/api/similarity/prior-art` | POST | Prior art search |
+| `/api/similarity/landscape/{patent_number}` | GET | Patent landscape |
 
 ### White Space Discovery
 
@@ -175,8 +184,8 @@ docker compose up -d --build
 |----------|--------|-------------|
 | `/api/whitespace/coverage` | GET | CPC section coverage analysis |
 | `/api/whitespace/gaps` | GET | Technology gap opportunities |
-| `/api/whitespace/opportunities` | GET | Cross-domain combinations |
-| `/api/whitespace/sections/{section}` | GET | Section breakdown details |
+| `/api/whitespace/cross-domain/{source_cpc}` | GET | Cross-domain combinations |
+| `/api/whitespace/sections` | GET | Section overview details |
 
 ### AI Idea Generation
 
@@ -190,7 +199,8 @@ docker compose up -d --build
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/analysis/trends` | GET | CPC technology trends |
-| `/api/analysis/citations/{id}` | GET | Citation network for patent |
+| `/api/analysis/citations/{patent_number}` | GET | Citation network for patent |
+| `/api/analysis/citations/{patent_number}/stats` | GET | Citation summary stats |
 
 ### Watchlist & Alerts
 
@@ -202,12 +212,22 @@ docker compose up -d --build
 | `/api/watchlist/alerts/summary` | GET | Alert counts by type/priority |
 | `/api/watchlist/alerts/{id}/read` | POST | Mark alert as read |
 | `/api/watchlist/alerts/{id}/dismiss` | POST | Dismiss alert |
+| `/api/watchlist/generate-alerts` | POST | Generate alerts (admin/cron) |
+
+### Ingestion
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/ingestion/trigger` | POST | Trigger ingestion job |
+| `/api/ingestion/status` | GET | Ingestion status and history |
+| `/api/ingestion/jobs/{job_id}` | GET | Ingestion job detail |
 
 ### System
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/api/health` | GET | Basic health check |
+| `/api/health/detailed` | GET | Detailed component health |
 | `/api/stats` | GET | Dashboard statistics |
 | `/api/status` | GET | Component health status |
 
@@ -219,7 +239,6 @@ docker compose up -d --build
 | USPTO PatentsView | Disambiguated entities | 50+ years | Free |
 | EPO DOCDB | 90+ countries | 90M+ | Free |
 | EPO INPADOC | Legal status, families | Global | Free |
-| Google BigQuery | Publications worldwide | 90M+ | Free tier |
 
 ## Project Structure
 
@@ -231,35 +250,44 @@ patent-intelligence/
 │   │   ├── routes/           # API route handlers
 │   │   │   ├── patents.py
 │   │   │   ├── search.py
-│   │   │   ├── expirations.py
+│   │   │   ├── expiration.py
+│   │   │   ├── similarity.py
 │   │   │   ├── analysis.py
 │   │   │   ├── whitespace.py
 │   │   │   ├── ideas.py
 │   │   │   ├── watchlist.py
+│   │   │   ├── ingestion.py
 │   │   │   └── health.py
 │   │   └── schemas/          # Pydantic request/response models
+│   ├── ai/                   # ML/embedding services
+│   │   ├── embeddings.py
+│   │   └── search_service.py
 │   ├── services/             # Business logic layer
-│   │   ├── patent_service.py
-│   │   ├── search_service.py
+│   │   ├── citation_service.py
 │   │   ├── expiration_service.py
-│   │   ├── similarity_service.py
-│   │   ├── whitespace_service.py
 │   │   ├── idea_service.py
+│   │   ├── similarity_service.py
+│   │   ├── stats_service.py
 │   │   ├── watchlist_service.py
-│   │   └── stats_service.py
+│   │   └── whitespace_service.py
 │   ├── models/               # SQLAlchemy ORM models
 │   │   ├── patent.py
 │   │   ├── watchlist.py
 │   │   └── ingestion.py
-│   ├── ai/                   # ML/embedding services
-│   │   └── embeddings.py
 │   ├── ingesters/            # Data source connectors
-│   │   ├── uspto.py
-│   │   ├── epo.py
-│   │   └── bigquery.py
+│   │   ├── uspto_ingester.py
+│   │   ├── epo_ingester.py
+│   │   └── epo_client.py
+│   ├── pipeline/             # Celery pipeline tasks
+│   │   ├── orchestrator.py
+│   │   ├── expiration_calc.py
+│   │   └── patent_store.py
+│   ├── database/             # DB engine and init scripts
+│   │   ├── connection.py
+│   │   └── init.sql
 │   └── utils/                # Shared utilities
 │       ├── logger.py
-│       └── database.py
+│       └── rate_limiter.py
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx           # Router configuration
@@ -277,7 +305,7 @@ patent-intelligence/
 │   └── vite.config.ts
 ├── tests/
 │   ├── unit/                 # Unit tests
-│   ├── integration/          # Integration tests
+│   ├── integration/          # Integration tests (if present)
 │   └── conftest.py           # pytest fixtures
 ├── docs/
 │   └── sdd/                  # Software Design Documents
