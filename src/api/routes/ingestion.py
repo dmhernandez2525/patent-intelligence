@@ -1,13 +1,29 @@
+import hmac
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.database.connection import get_session
 from src.models.ingestion import IngestionCheckpoint, IngestionJob
 from src.utils.logger import logger
+
+
+async def verify_admin_api_key(x_api_key: str = Header(..., alias="X-API-Key")) -> None:
+    """Verify the admin API key for protected endpoints."""
+    if not settings.admin_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Admin API key not configured",
+        )
+    if not hmac.compare_digest(x_api_key, settings.admin_api_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key",
+        )
 
 router = APIRouter()
 
@@ -46,12 +62,15 @@ class IngestionStatusResponse(BaseModel):
     checkpoint: dict | None = None
 
 
-@router.post("/trigger", response_model=IngestionJobResponse)
+@router.post("/trigger", response_model=IngestionJobResponse, dependencies=[Depends(verify_admin_api_key)])
 async def trigger_ingestion(
     request: IngestionTriggerRequest,
     session: AsyncSession = Depends(get_session),
 ) -> IngestionJobResponse:
-    """Trigger a patent data ingestion job."""
+    """Trigger a patent data ingestion job.
+
+    Requires X-API-Key header with a valid admin API key.
+    """
     # Check for active jobs
     active = await session.execute(
         select(func.count(IngestionJob.id)).where(
@@ -78,10 +97,9 @@ async def trigger_ingestion(
     try:
         from src.pipeline.orchestrator import ingest_patents_task
 
-        _since = None  # TODO: Pass to ingest_patents_task when supported
         if request.since_date:
             try:
-                _since = datetime.strptime(request.since_date, "%Y-%m-%d")
+                datetime.strptime(request.since_date, "%Y-%m-%d")
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid since_date format")
 
@@ -89,6 +107,8 @@ async def trigger_ingestion(
             source=request.source,
             batch_size=request.batch_size,
             max_patents=request.max_patents,
+            since_date=request.since_date,
+            job_id=job.id,
         )
         job.celery_task_id = task.id
         job.status = "running"

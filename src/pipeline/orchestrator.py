@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from celery import Celery
 from celery.schedules import crontab
 
@@ -46,15 +48,32 @@ def _run_async(coro):
 
 
 @celery_app.task(name="pipeline.ingest_patents", bind=True)
-def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: int | None = None):
+def ingest_patents_task(
+    self,
+    source: str,
+    batch_size: int = 100,
+    max_patents: int | None = None,
+    since_date: str | None = None,
+    job_id: int | None = None,
+):
     """Background task for patent ingestion with database storage."""
     from src.utils.logger import logger
 
     logger.info("task.ingest_patents.started", source=source, task_id=self.request.id)
 
     async def _run():
+        from sqlalchemy import select
+
         from src.database.connection import get_db_session
+        from src.models.ingestion import IngestionCheckpoint, IngestionJob
         from src.pipeline.patent_store import store_patent_batch
+
+        since: datetime | None = None
+        if since_date:
+            try:
+                since = datetime.strptime(since_date, "%Y-%m-%d")
+            except ValueError:
+                logger.warning("task.ingest_patents.invalid_since_date", since_date=since_date)
 
         if source == "uspto":
             from src.ingesters.uspto_ingester import USPTOIngester
@@ -72,14 +91,43 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
         total_updated = 0
         total_errors = 0
 
+        async def _mark_failed(error_message: str) -> None:
+            if job_id is None:
+                return
+            completed_at = datetime.now(UTC)
+            async with get_db_session() as session:
+                job = await session.get(IngestionJob, job_id)
+                if not job:
+                    return
+                job.status = "failed"
+                job.error_message = error_message
+                job.completed_at = completed_at
+                if job.started_at:
+                    job.duration_seconds = (completed_at - job.started_at).total_seconds()
+                job.total_fetched = total_fetched
+                job.total_inserted = total_inserted
+                job.total_updated = total_updated
+                job.total_errors = total_errors
+
         try:
-            async for batch in ingester.fetch_patents(offset=0, limit=batch_size, since=None):
+            async for batch in ingester.fetch_patents(offset=0, limit=batch_size, since=since):
                 async with get_db_session() as session:
                     ins, upd, errs = await store_patent_batch(session, batch, source=source)
                     total_inserted += ins
                     total_updated += upd
                     total_errors += errs
                     total_fetched += len(batch)
+
+                    if job_id is not None:
+                        job = await session.get(IngestionJob, job_id)
+                        if job:
+                            job.total_fetched = total_fetched
+                            job.total_inserted = total_inserted
+                            job.total_updated = total_updated
+                            job.total_errors = total_errors
+                            job.status = "running"
+                            if job.started_at is None:
+                                job.started_at = datetime.now(UTC)
 
                 if max_patents and total_fetched >= max_patents:
                     break
@@ -96,9 +144,36 @@ def ingest_patents_task(self, source: str, batch_size: int = 100, max_patents: i
         except Exception as e:
             total_errors += 1
             logger.error("task.ingest_patents.error", error=str(e))
+            await _mark_failed(str(e))
             raise
         finally:
             await ingester.close()
+
+        if job_id is not None:
+            completed_at = datetime.now(UTC)
+            async with get_db_session() as session:
+                job = await session.get(IngestionJob, job_id)
+                if job:
+                    job.status = "completed"
+                    job.completed_at = completed_at
+                    if job.started_at:
+                        job.duration_seconds = (completed_at - job.started_at).total_seconds()
+                    job.total_fetched = total_fetched
+                    job.total_inserted = total_inserted
+                    job.total_updated = total_updated
+                    job.total_errors = total_errors
+
+                checkpoint_result = await session.execute(
+                    select(IngestionCheckpoint).where(IngestionCheckpoint.source == source)
+                )
+                checkpoint = checkpoint_result.scalar_one_or_none()
+                if checkpoint is None:
+                    checkpoint = IngestionCheckpoint(source=source)
+                    session.add(checkpoint)
+                checkpoint.last_sync_date = completed_at
+                checkpoint.total_patents_ingested = (
+                    (checkpoint.total_patents_ingested or 0) + total_inserted
+                )
 
         return {
             "source": source,
