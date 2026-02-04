@@ -51,6 +51,22 @@ class TestWatchlistService:
         assert total == 0
 
     @pytest.mark.asyncio
+    async def test_generate_alerts_for_all_users(self, watchlist_service):
+        """Test generating alerts for multiple users."""
+        mock_session = AsyncMock()
+        mock_result = MagicMock()
+        mock_result.all.return_value = [("default",), ("team",)]
+        mock_session.execute.return_value = mock_result
+
+        watchlist_service.generate_alerts = AsyncMock(side_effect=[2, 3])
+
+        total = await watchlist_service.generate_alerts_for_all_users(mock_session)
+
+        assert total == 5
+        watchlist_service.generate_alerts.assert_any_call(mock_session, user_id="default")
+        watchlist_service.generate_alerts.assert_any_call(mock_session, user_id="team")
+
+    @pytest.mark.asyncio
     async def test_get_alert_summary_empty(self, watchlist_service):
         """Test alert summary with no alerts."""
         mock_session = AsyncMock()

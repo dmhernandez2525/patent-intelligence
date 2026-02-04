@@ -1,12 +1,29 @@
 """API routes for watchlist and alerts management."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+import hmac
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.database.connection import get_session
 from src.services.watchlist_service import watchlist_service
 from src.utils.logger import logger
+
+
+async def verify_admin_api_key(x_api_key: str = Header(..., alias="X-API-Key")) -> None:
+    """Verify the admin API key for protected endpoints."""
+    if not settings.admin_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Admin API key not configured",
+        )
+    if not hmac.compare_digest(x_api_key, settings.admin_api_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key",
+        )
 
 router = APIRouter()
 
@@ -20,7 +37,10 @@ class WatchlistAddRequest(BaseModel):
     notes: str | None = Field(None, max_length=1000)
     notify_expiration: bool = True
     notify_maintenance: bool = True
+    notify_citations: bool = False
+    notify_new_patents: bool = False
     expiration_lead_days: int = Field(default=90, ge=1, le=365)
+    maintenance_lead_days: int = Field(default=30, ge=1, le=180)
 
 
 class WatchlistUpdateRequest(BaseModel):
@@ -151,7 +171,10 @@ async def add_to_watchlist(
             notes=request.notes,
             notify_expiration=request.notify_expiration,
             notify_maintenance=request.notify_maintenance,
+            notify_citations=request.notify_citations,
+            notify_new_patents=request.notify_new_patents,
             expiration_lead_days=request.expiration_lead_days,
+            maintenance_lead_days=request.maintenance_lead_days,
         )
         await session.commit()
         return WatchlistItemResponse(**item)
@@ -269,14 +292,17 @@ async def dismiss_alert(
     return {"success": True}
 
 
-@router.post("/generate-alerts")
+@router.post("/generate-alerts", dependencies=[Depends(verify_admin_api_key)])
 async def generate_alerts(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    """Generate alerts for watchlist items (admin/cron endpoint)."""
+    """Generate alerts for watchlist items (admin/cron endpoint).
+
+    Requires X-API-Key header with a valid admin API key.
+    """
     logger.info("watchlist.generate_alerts")
 
-    count = await watchlist_service.generate_alerts(session)
+    count = await watchlist_service.generate_alerts_for_all_users(session)
     await session.commit()
 
     return {"success": True, "alerts_created": count}
