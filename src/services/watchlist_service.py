@@ -1,17 +1,16 @@
 """Watchlist service for managing watched patents and alerts."""
 
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
-from sqlalchemy import and_, delete, func, or_, select, update
+from sqlalchemy import and_, delete, func, select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.models.patent import Citation, MaintenanceFee, Patent
+from src.models.patent import MaintenanceFee, Patent
 from src.models.watchlist import Alert, WatchlistItem
 from src.utils.logger import logger
-
-NEW_CITATION_LOOKBACK_DAYS = 30
-NEW_PATENT_LOOKBACK_DAYS = 30
 
 
 class WatchlistService:
@@ -64,10 +63,7 @@ class WatchlistService:
         notes: str | None = None,
         notify_expiration: bool = True,
         notify_maintenance: bool = True,
-        notify_citations: bool = False,
-        notify_new_patents: bool = False,
         expiration_lead_days: int = 90,
-        maintenance_lead_days: int = 30,
     ) -> dict:
         """Add an item to the watchlist."""
         # Check if already exists
@@ -99,10 +95,7 @@ class WatchlistService:
             notes=notes,
             notify_expiration=notify_expiration,
             notify_maintenance=notify_maintenance,
-            notify_citations=notify_citations,
-            notify_new_patents=notify_new_patents,
             expiration_lead_days=expiration_lead_days,
-            maintenance_lead_days=maintenance_lead_days,
         )
 
         session.add(item)
@@ -125,15 +118,18 @@ class WatchlistService:
         user_id: str = "default",
     ) -> bool:
         """Remove an item from watchlist."""
-        result = await session.execute(
-            delete(WatchlistItem).where(
-                and_(
-                    WatchlistItem.id == item_id,
-                    WatchlistItem.user_id == user_id,
+        result = cast(
+            CursorResult[Any],
+            await session.execute(
+                delete(WatchlistItem).where(
+                    and_(
+                        WatchlistItem.id == item_id,
+                        WatchlistItem.user_id == user_id,
+                    )
                 )
-            )
+            ),
         )
-        deleted = result.rowcount > 0
+        deleted = (result.rowcount or 0) > 0
 
         if deleted:
             logger.info("watchlist.removed", user_id=user_id, item_id=item_id)
@@ -300,27 +296,21 @@ class WatchlistService:
                 and_(
                     WatchlistItem.user_id == user_id,
                     WatchlistItem.is_active == True,
+                    WatchlistItem.item_type == "patent",
+                    WatchlistItem.patent_id.isnot(None),
                 )
             )
         )
         items = items_result.scalars().all()
 
         for item in items:
-            if item.item_type == "patent" and item.patent_id:
-                # Check for expiration alerts
-                if item.notify_expiration:
-                    alerts_created += await self._check_expiration_alert(session, item, now)
+            # Check for expiration alerts
+            if item.notify_expiration:
+                alerts_created += await self._check_expiration_alert(session, item, now)
 
-                # Check for maintenance fee alerts
-                if item.notify_maintenance:
-                    alerts_created += await self._check_maintenance_alert(session, item, now)
-
-                # Check for new citation alerts
-                if item.notify_citations:
-                    alerts_created += await self._check_citation_alerts(session, item, now)
-
-            if item.notify_new_patents and item.item_type in ("cpc_code", "assignee", "inventor"):
-                alerts_created += await self._check_new_patent_alerts(session, item, now)
+            # Check for maintenance fee alerts
+            if item.notify_maintenance:
+                alerts_created += await self._check_maintenance_alert(session, item, now)
 
         logger.info(
             "watchlist.alerts_generated",
@@ -329,21 +319,6 @@ class WatchlistService:
         )
 
         return alerts_created
-
-    async def generate_alerts_for_all_users(self, session: AsyncSession) -> int:
-        """Generate alerts for every active watchlist user."""
-        user_result = await session.execute(
-            select(WatchlistItem.user_id)
-            .where(WatchlistItem.is_active == True)
-            .distinct()
-        )
-        user_ids = [row[0] for row in user_result.all()]
-
-        total_created = 0
-        for user_id in user_ids:
-            total_created += await self.generate_alerts(session, user_id=user_id)
-
-        return total_created
 
     async def _check_expiration_alert(
         self,
@@ -459,146 +434,6 @@ class WatchlistService:
         )
         session.add(alert)
         return 1
-
-    async def _check_citation_alerts(
-        self,
-        session: AsyncSession,
-        item: WatchlistItem,
-        now: datetime,
-    ) -> int:
-        """Check if new citation alerts should be created."""
-        if not item.patent_id:
-            return 0
-
-        patent_result = await session.execute(select(Patent).where(Patent.id == item.patent_id))
-        patent = patent_result.scalar_one_or_none()
-        if not patent:
-            return 0
-
-        since_dt = now - timedelta(days=NEW_CITATION_LOOKBACK_DAYS)
-
-        citations_result = await session.execute(
-            select(Citation, Patent)
-            .join(Patent, Patent.id == Citation.citing_patent_id, isouter=True)
-            .where(
-                and_(
-                    Citation.cited_patent_number == patent.patent_number,
-                    Citation.created_at >= since_dt,
-                )
-            )
-            .order_by(Citation.created_at.desc())
-            .limit(20)
-        )
-
-        alerts_created = 0
-        for citation, citing_patent in citations_result.all():
-            existing = await session.execute(
-                select(Alert).where(
-                    and_(
-                        Alert.watchlist_item_id == item.id,
-                        Alert.alert_type == "new_citation",
-                        Alert.related_data.op("->>")("citation_id") == str(citation.id),
-                        Alert.is_dismissed == False,
-                    )
-                )
-            )
-            if existing.scalar_one_or_none():
-                continue
-
-            citing_number = citing_patent.patent_number if citing_patent else "Unknown"
-            citing_title = citing_patent.title if citing_patent else ""
-            message = (
-                f"{citing_number} cited {patent.patent_number}"
-                if not citing_title
-                else f"{citing_number} cited {patent.patent_number}: {citing_title}"
-            )
-
-            alert = Alert(
-                watchlist_item_id=item.id,
-                alert_type="new_citation",
-                priority="medium",
-                title=f"New citation for {patent.patent_number}",
-                message=message,
-                related_patent_number=patent.patent_number,
-                related_data={
-                    "citation_id": citation.id,
-                    "citing_patent_number": citing_number,
-                    "citing_patent_title": citing_title,
-                },
-                trigger_date=now,
-            )
-            session.add(alert)
-            alerts_created += 1
-
-        return alerts_created
-
-    async def _check_new_patent_alerts(
-        self,
-        session: AsyncSession,
-        item: WatchlistItem,
-        now: datetime,
-    ) -> int:
-        """Check if new patent alerts should be created for a watchlist item."""
-        since_date = now.date() - timedelta(days=NEW_PATENT_LOOKBACK_DAYS)
-
-        query = select(Patent).where(
-            or_(
-                Patent.filing_date >= since_date,
-                Patent.publication_date >= since_date,
-            )
-        )
-
-        if item.item_type == "cpc_code":
-            query = query.where(
-                func.array_to_string(Patent.cpc_codes, ",").ilike(f"%{item.item_value}%")
-            )
-        elif item.item_type == "assignee":
-            query = query.where(Patent.assignee_organization.ilike(f"%{item.item_value}%"))
-        elif item.item_type == "inventor":
-            query = query.where(
-                func.array_to_string(Patent.inventors, ",").ilike(f"%{item.item_value}%")
-            )
-        else:
-            return 0
-
-        query = query.order_by(Patent.filing_date.desc().nullslast()).limit(25)
-        result = await session.execute(query)
-        patents = result.scalars().all()
-
-        alerts_created = 0
-        for patent in patents:
-            existing = await session.execute(
-                select(Alert).where(
-                    and_(
-                        Alert.watchlist_item_id == item.id,
-                        Alert.alert_type == "new_patent",
-                        Alert.related_patent_number == patent.patent_number,
-                        Alert.is_dismissed == False,
-                    )
-                )
-            )
-            if existing.scalar_one_or_none():
-                continue
-
-            alert = Alert(
-                watchlist_item_id=item.id,
-                alert_type="new_patent",
-                priority="medium",
-                title=f"New patent for {item.item_value}",
-                message=f"{patent.patent_number}: {patent.title}",
-                related_patent_number=patent.patent_number,
-                related_data={
-                    "patent_id": patent.id,
-                    "filing_date": patent.filing_date.isoformat() if patent.filing_date else None,
-                    "assignee": patent.assignee_organization,
-                    "cpc_codes": patent.cpc_codes,
-                },
-                trigger_date=now,
-            )
-            session.add(alert)
-            alerts_created += 1
-
-        return alerts_created
 
     async def get_alert_summary(
         self,

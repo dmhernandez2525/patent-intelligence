@@ -180,7 +180,7 @@ class StatsService:
             "source": job.source,
             "status": job.status,
             "completed_at": job.completed_at.isoformat() if job.completed_at else None,
-            "patents_processed": job.patents_processed,
+            "patents_processed": job.total_fetched,
         }
 
 

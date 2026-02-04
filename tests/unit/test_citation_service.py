@@ -1,6 +1,7 @@
-import pytest
 from datetime import date
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.services.citation_service import CitationService
 
@@ -71,7 +72,6 @@ class TestCitationNetworkStructure:
     """Test citation network response structure."""
 
     def test_empty_network_when_patent_not_found(self):
-        service = CitationService()
         # _get_patent returns None → should return error
         # This tests the expected return format
         result = {"error": "Patent not found"}
@@ -128,7 +128,6 @@ class TestTrendsResponseStructure:
     def test_growth_threshold(self):
         """Service uses min threshold of 5 for earlier count."""
         earlier = 3  # Below threshold
-        recent = 30
         # Service would skip this entry
         should_include = earlier > 5
         assert should_include is False

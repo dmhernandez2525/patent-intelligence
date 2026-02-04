@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 import numpy as np
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,8 +12,8 @@ from src.utils.logger import logger
 class EmbeddingService:
     """Generate and manage patent embeddings using PatentSBERTa."""
 
-    def __init__(self):
-        self._model = None
+    def __init__(self) -> None:
+        self._model: Any | None = None
 
     @property
     def model(self):
@@ -25,12 +27,12 @@ class EmbeddingService:
     def generate_embedding(self, text: str) -> list[float]:
         """Generate embedding for a single text."""
         embedding = self.model.encode(text, normalize_embeddings=True)
-        return embedding.tolist()
+        return cast(list[float], embedding.tolist())
 
     def generate_embeddings_batch(self, texts: list[str]) -> list[list[float]]:
         """Generate embeddings for a batch of texts."""
         embeddings = self.model.encode(texts, normalize_embeddings=True, batch_size=32)
-        return embeddings.tolist()
+        return cast(list[list[float]], embeddings.tolist())
 
     def prepare_patent_text(self, patent: Patent) -> str:
         """Prepare patent text for embedding generation."""

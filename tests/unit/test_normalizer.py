@@ -1,4 +1,4 @@
-from src.pipeline.normalizer import normalize_patent_number, normalize_cpc_code, parse_date
+from src.pipeline.normalizer import normalize_cpc_code, normalize_patent_number, parse_date
 
 
 def test_normalize_patent_number_adds_us_prefix():

@@ -1,6 +1,7 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import date
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from src.ai.search_service import PatentSearchService
 
@@ -208,8 +209,9 @@ class TestSearchSchemas:
         assert req.cpc_codes is None
 
     def test_search_request_validation(self):
-        from src.api.schemas.search import SearchRequest
         from pydantic import ValidationError
+
+        from src.api.schemas.search import SearchRequest
 
         with pytest.raises(ValidationError):
             SearchRequest(query="")  # min_length=1

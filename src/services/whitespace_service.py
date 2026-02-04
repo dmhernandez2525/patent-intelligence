@@ -240,7 +240,7 @@ class WhiteSpaceService:
             recent_annual = recent / 2 if recent > 0 else 0
 
             if historical_annual == 0:
-                decline_ratio = 0
+                decline_ratio = 0.0
             else:
                 decline_ratio = max(0, (historical_annual - recent_annual) / historical_annual)
 

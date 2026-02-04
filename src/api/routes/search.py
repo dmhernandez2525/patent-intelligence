@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +23,7 @@ async def search_patents(
     - **semantic**: PatentSBERTa embedding cosine similarity via pgvector
     - **hybrid**: Reciprocal Rank Fusion combining both approaches (default)
     """
-    filters = {}
+    filters: dict[str, Any] = {}
     if request.country:
         filters["country"] = request.country
     if request.status:

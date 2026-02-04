@@ -1,7 +1,7 @@
-from datetime import UTC, datetime
+from collections.abc import Coroutine
+from typing import Any, TypeVar
 
 from celery import Celery
-from celery.schedules import crontab
 
 from src.config import settings
 
@@ -22,16 +22,13 @@ celery_app.conf.update(
     task_soft_time_limit=3000,
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=100,
-    beat_schedule={
-        "watchlist-alerts-schedule": {
-            "task": "pipeline.generate_watchlist_alerts",
-            "schedule": crontab(minute=0, hour="*/6"),
-        },
-    },
 )
 
 
-def _run_async(coro):
+T = TypeVar("T")
+
+
+def _run_async(coro: Coroutine[Any, Any, T]) -> T:
     """Run an async coroutine in a way compatible with Celery workers."""
     import asyncio
 
@@ -47,38 +44,24 @@ def _run_async(coro):
     return asyncio.run(coro)
 
 
-@celery_app.task(name="pipeline.ingest_patents", bind=True)
+@celery_app.task(name="pipeline.ingest_patents", bind=True)  # type: ignore[untyped-decorator]
 def ingest_patents_task(
-    self,
-    source: str,
-    batch_size: int = 100,
-    max_patents: int | None = None,
-    since_date: str | None = None,
-    job_id: int | None = None,
-):
+    self: Any, source: str, batch_size: int = 100, max_patents: int | None = None
+) -> dict[str, Any]:
     """Background task for patent ingestion with database storage."""
     from src.utils.logger import logger
 
     logger.info("task.ingest_patents.started", source=source, task_id=self.request.id)
 
-    async def _run():
-        from sqlalchemy import select
-
+    async def _run() -> dict[str, Any]:
         from src.database.connection import get_db_session
-        from src.models.ingestion import IngestionCheckpoint, IngestionJob
+        from src.ingesters.base import BaseIngester
         from src.pipeline.patent_store import store_patent_batch
-
-        since: datetime | None = None
-        if since_date:
-            try:
-                since = datetime.strptime(since_date, "%Y-%m-%d")
-            except ValueError:
-                logger.warning("task.ingest_patents.invalid_since_date", since_date=since_date)
 
         if source == "uspto":
             from src.ingesters.uspto_ingester import USPTOIngester
 
-            ingester = USPTOIngester()
+            ingester: BaseIngester = USPTOIngester()
         elif source == "epo":
             from src.ingesters.epo_ingester import EPOIngester
 
@@ -91,43 +74,14 @@ def ingest_patents_task(
         total_updated = 0
         total_errors = 0
 
-        async def _mark_failed(error_message: str) -> None:
-            if job_id is None:
-                return
-            completed_at = datetime.now(UTC)
-            async with get_db_session() as session:
-                job = await session.get(IngestionJob, job_id)
-                if not job:
-                    return
-                job.status = "failed"
-                job.error_message = error_message
-                job.completed_at = completed_at
-                if job.started_at:
-                    job.duration_seconds = (completed_at - job.started_at).total_seconds()
-                job.total_fetched = total_fetched
-                job.total_inserted = total_inserted
-                job.total_updated = total_updated
-                job.total_errors = total_errors
-
         try:
-            async for batch in ingester.fetch_patents(offset=0, limit=batch_size, since=since):
+            async for batch in ingester.fetch_patents(offset=0, limit=batch_size, since=None):
                 async with get_db_session() as session:
                     ins, upd, errs = await store_patent_batch(session, batch, source=source)
                     total_inserted += ins
                     total_updated += upd
                     total_errors += errs
                     total_fetched += len(batch)
-
-                    if job_id is not None:
-                        job = await session.get(IngestionJob, job_id)
-                        if job:
-                            job.total_fetched = total_fetched
-                            job.total_inserted = total_inserted
-                            job.total_updated = total_updated
-                            job.total_errors = total_errors
-                            job.status = "running"
-                            if job.started_at is None:
-                                job.started_at = datetime.now(UTC)
 
                 if max_patents and total_fetched >= max_patents:
                     break
@@ -144,36 +98,9 @@ def ingest_patents_task(
         except Exception as e:
             total_errors += 1
             logger.error("task.ingest_patents.error", error=str(e))
-            await _mark_failed(str(e))
             raise
         finally:
             await ingester.close()
-
-        if job_id is not None:
-            completed_at = datetime.now(UTC)
-            async with get_db_session() as session:
-                job = await session.get(IngestionJob, job_id)
-                if job:
-                    job.status = "completed"
-                    job.completed_at = completed_at
-                    if job.started_at:
-                        job.duration_seconds = (completed_at - job.started_at).total_seconds()
-                    job.total_fetched = total_fetched
-                    job.total_inserted = total_inserted
-                    job.total_updated = total_updated
-                    job.total_errors = total_errors
-
-                checkpoint_result = await session.execute(
-                    select(IngestionCheckpoint).where(IngestionCheckpoint.source == source)
-                )
-                checkpoint = checkpoint_result.scalar_one_or_none()
-                if checkpoint is None:
-                    checkpoint = IngestionCheckpoint(source=source)
-                    session.add(checkpoint)
-                checkpoint.last_sync_date = completed_at
-                checkpoint.total_patents_ingested = (
-                    (checkpoint.total_patents_ingested or 0) + total_inserted
-                )
 
         return {
             "source": source,
@@ -196,14 +123,16 @@ def ingest_patents_task(
     return result
 
 
-@celery_app.task(name="pipeline.generate_embeddings", bind=True)
-def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_size: int = 32):
+@celery_app.task(name="pipeline.generate_embeddings", bind=True)  # type: ignore[untyped-decorator]
+def generate_embeddings_task(
+    self: Any, patent_ids: list[int] | None = None, batch_size: int = 32
+) -> dict[str, Any]:
     """Background task for generating patent embeddings."""
     from src.utils.logger import logger
 
     logger.info("task.generate_embeddings.started", task_id=self.request.id)
 
-    async def _run():
+    async def _run() -> int:
         from src.ai.embeddings import embedding_service
         from src.database.connection import get_db_session
 
@@ -225,22 +154,3 @@ def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_si
 
     processed = _run_async(_run())
     return {"status": "completed", "processed": processed}
-
-
-@celery_app.task(name="pipeline.generate_watchlist_alerts", bind=True)
-def generate_watchlist_alerts_task(self):
-    """Background task for generating watchlist alerts."""
-    from src.utils.logger import logger
-
-    logger.info("task.watchlist_alerts.started", task_id=self.request.id)
-
-    async def _run():
-        from src.database.connection import get_db_session
-        from src.services.watchlist_service import watchlist_service
-
-        async with get_db_session() as session:
-            return await watchlist_service.generate_alerts_for_all_users(session)
-
-    total_created = _run_async(_run())
-    logger.info("task.watchlist_alerts.completed", alerts_created=total_created)
-    return {"status": "completed", "alerts_created": total_created}

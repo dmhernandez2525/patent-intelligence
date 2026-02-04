@@ -5,6 +5,7 @@ and competitive landscape insights.
 """
 
 from datetime import date
+from typing import Any
 
 from sqlalchemy import and_, column, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -197,7 +198,7 @@ class CitationService:
 
     async def _get_forward_citations(
         self, session: AsyncSession, patent_id: int, limit: int = 20
-    ) -> list[tuple]:
+    ) -> list[tuple[Citation, Patent | None]]:
         """Get patents cited by this patent."""
         result = await session.execute(
             select(Citation, Patent)
@@ -205,11 +206,12 @@ class CitationService:
             .where(Citation.citing_patent_id == patent_id)
             .limit(limit)
         )
-        return result.all()
+        rows = result.all()
+        return [(row[0], row[1]) for row in rows]
 
     async def _get_backward_citations(
         self, session: AsyncSession, patent_id: int, limit: int = 20
-    ) -> list[tuple]:
+    ) -> list[tuple[Citation, Patent | None]]:
         """Get patents that cite this patent."""
         result = await session.execute(
             select(Citation, Patent)
@@ -217,7 +219,8 @@ class CitationService:
             .where(Citation.cited_patent_id == patent_id)
             .limit(limit)
         )
-        return result.all()
+        rows = result.all()
+        return [(row[0], row[1]) for row in rows]
 
     async def _get_yearly_counts(
         self, session: AsyncSession, start_year: int, end_year: int, country: str | None
@@ -304,7 +307,7 @@ class CitationService:
         """Find CPC codes with highest growth rate."""
         mid_year = start_year + (end_year - start_year) // 2
 
-        conditions_base = [
+        conditions_base: list[Any] = [
             Patent.filing_date.isnot(None),
             Patent.cpc_codes.isnot(None),
         ]

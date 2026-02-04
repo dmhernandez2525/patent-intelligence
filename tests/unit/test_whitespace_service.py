@@ -1,10 +1,10 @@
 """Unit tests for white space discovery service."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
-from datetime import date
 
-from src.services.whitespace_service import WhiteSpaceService, CPC_SECTIONS
+import pytest
+
+from src.services.whitespace_service import CPC_SECTIONS, WhiteSpaceService
 
 
 @pytest.fixture
@@ -185,7 +185,7 @@ class TestWhiteSpaceRoutes:
 
     def test_coverage_response_structure(self):
         """Test CoverageResponse schema structure."""
-        from src.api.schemas.whitespace import CoverageResponse, CoverageArea
+        from src.api.schemas.whitespace import CoverageArea, CoverageResponse
 
         area = CoverageArea(
             cpc_code="H01L",
@@ -211,7 +211,7 @@ class TestWhiteSpaceRoutes:
 
     def test_whitespace_response_structure(self):
         """Test WhiteSpaceResponse schema structure."""
-        from src.api.schemas.whitespace import WhiteSpaceResponse, WhiteSpaceItem
+        from src.api.schemas.whitespace import WhiteSpaceItem, WhiteSpaceResponse
 
         item = WhiteSpaceItem(
             cpc_code="H01L21/0",
@@ -238,7 +238,7 @@ class TestWhiteSpaceRoutes:
 
     def test_crossdomain_response_structure(self):
         """Test CrossDomainResponse schema structure."""
-        from src.api.schemas.whitespace import CrossDomainResponse, CrossDomainOpportunity
+        from src.api.schemas.whitespace import CrossDomainOpportunity, CrossDomainResponse
 
         opp = CrossDomainOpportunity(
             cpc_code="G06F",
@@ -264,7 +264,7 @@ class TestWhiteSpaceRoutes:
 
     def test_section_overview_response_structure(self):
         """Test SectionOverviewResponse schema structure."""
-        from src.api.schemas.whitespace import SectionOverviewResponse, SectionInfo
+        from src.api.schemas.whitespace import SectionInfo, SectionOverviewResponse
 
         section = SectionInfo(
             section="H",

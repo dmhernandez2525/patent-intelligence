@@ -1,5 +1,6 @@
 from collections.abc import AsyncGenerator
 from datetime import datetime
+from typing import Any, cast
 
 import httpx
 
@@ -37,7 +38,7 @@ class USPTOIngester(BaseIngester):
         "cited_patents.cited_patent_category",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
@@ -251,7 +252,9 @@ class USPTOIngester(BaseIngester):
                     f"https://developer.uspto.gov/ptab-api/maintenance-fees/{patent_number}",
                 )
                 if response.status_code == 200:
-                    return response.json().get("fees", [])
+                    data = response.json()
+                    fees = data.get("fees", [])
+                    return cast(list[dict[str, Any]], fees)
             except (httpx.HTTPStatusError, httpx.RequestError) as e:
                 logger.warning(
                     "uspto.maintenance_fee_error",

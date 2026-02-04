@@ -1,6 +1,7 @@
-import pytest
 from datetime import date
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.services.similarity_service import SimilarityService
 
@@ -69,8 +70,9 @@ class TestSimilaritySchemas:
         assert req.text_query is None
 
     def test_similarity_request_validation(self):
-        from src.api.schemas.similarity import SimilarityRequest
         from pydantic import ValidationError
+
+        from src.api.schemas.similarity import SimilarityRequest
 
         with pytest.raises(ValidationError):
             SimilarityRequest(text_query="test", top_k=0)  # ge=1

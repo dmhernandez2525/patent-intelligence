@@ -8,6 +8,7 @@ API Documentation: https://www.epo.org/searching-for-patents/data/web-services/o
 
 import base64
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import httpx
 
@@ -156,7 +157,7 @@ class EPOClient:
         if response.status_code == 404:
             return None
 
-        return response.json()
+        return cast(dict[str, Any], response.json())
 
     async def search_publications(
         self,
@@ -179,7 +180,7 @@ class EPOClient:
         if response.status_code == 404:
             return None
 
-        return response.json()
+        return cast(dict[str, Any], response.json())
 
     async def get_family(
         self,
@@ -198,7 +199,7 @@ class EPOClient:
         if response.status_code == 404:
             return None
 
-        return response.json()
+        return cast(dict[str, Any], response.json())
 
     async def get_legal_status(
         self,
@@ -217,7 +218,7 @@ class EPOClient:
         if response.status_code == 404:
             return None
 
-        return response.json()
+        return cast(dict[str, Any], response.json())
 
     async def get_register_data(
         self,
@@ -236,4 +237,4 @@ class EPOClient:
         if response.status_code == 404:
             return None
 
-        return response.json()
+        return cast(dict[str, Any], response.json())

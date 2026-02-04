@@ -1,6 +1,3 @@
-from datetime import date
-from typing import Any
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,19 +14,6 @@ from src.services.similarity_service import similarity_service
 from src.utils.logger import logger
 
 router = APIRouter()
-
-
-def _build_similarity_response(
-    results: list[dict[str, Any]],
-    request: SimilarityRequest,
-) -> SimilarityResponse:
-    typed_results = [SimilarPatentItem(**r) for r in results]
-    return SimilarityResponse(
-        results=typed_results,
-        query_patent=request.patent_number,
-        query_text=request.text_query,
-        total_found=len(typed_results),
-    )
 
 
 @router.post("/similar", response_model=SimilarityResponse)
@@ -62,55 +46,14 @@ async def find_similar_patents(
         cpc_code=request.cpc_code,
     )
 
-    return _build_similarity_response(results, request)
+    typed_results = [SimilarPatentItem(**r) for r in results]
 
-
-@router.get("/similar", response_model=SimilarityResponse)
-async def find_similar_patents_get(
-    patent_number: str | None = None,
-    text_query: str | None = None,
-    top_k: int = Query(default=20, ge=1, le=100),
-    min_score: float = Query(default=0.5, ge=0.0, le=1.0),
-    exclude_same_assignee: bool = Query(default=False),
-    country: str | None = None,
-    cpc_code: str | None = None,
-    session: AsyncSession = Depends(get_session),
-) -> SimilarityResponse:
-    """GET alias for similar patent search (compat)."""
-    request = SimilarityRequest(
-        patent_number=patent_number,
-        text_query=text_query,
-        top_k=top_k,
-        min_score=min_score,
-        exclude_same_assignee=exclude_same_assignee,
-        country=country,
-        cpc_code=cpc_code,
+    return SimilarityResponse(
+        results=typed_results,
+        query_patent=request.patent_number,
+        query_text=request.text_query,
+        total_found=len(typed_results),
     )
-    if not request.patent_number and not request.text_query:
-        raise HTTPException(
-            status_code=400,
-            detail="Either patent_number or text_query must be provided",
-        )
-
-    logger.info(
-        "similarity.search",
-        patent_number=request.patent_number,
-        text_query=request.text_query[:50] if request.text_query else None,
-        top_k=request.top_k,
-    )
-
-    results = await similarity_service.find_similar_patents(
-        session,
-        patent_number=request.patent_number,
-        text_query=request.text_query,
-        top_k=request.top_k,
-        min_score=request.min_score,
-        exclude_same_assignee=request.exclude_same_assignee,
-        country=request.country,
-        cpc_code=request.cpc_code,
-    )
-
-    return _build_similarity_response(results, request)
 
 
 @router.post("/prior-art", response_model=PriorArtResponse)
@@ -119,49 +62,6 @@ async def find_prior_art(
     session: AsyncSession = Depends(get_session),
 ) -> PriorArtResponse:
     """Find potential prior art for a patent or invention concept."""
-    if not request.patent_number and not request.text_query:
-        raise HTTPException(
-            status_code=400,
-            detail="Either patent_number or text_query must be provided",
-        )
-
-    logger.info(
-        "similarity.prior_art",
-        patent_number=request.patent_number,
-        text_query=request.text_query[:50] if request.text_query else None,
-    )
-
-    result = await similarity_service.find_prior_art(
-        session,
-        patent_number=request.patent_number,
-        text_query=request.text_query,
-        filing_date_before=request.filing_date_before,
-        top_k=request.top_k,
-        min_score=request.min_score,
-    )
-
-    if "prior_art" in result:
-        result["prior_art"] = [SimilarPatentItem(**r) for r in result["prior_art"]]
-    return PriorArtResponse(**result)
-
-
-@router.get("/prior-art", response_model=PriorArtResponse)
-async def find_prior_art_get(
-    patent_number: str | None = None,
-    text_query: str | None = None,
-    filing_date_before: date | None = None,
-    top_k: int = Query(default=20, ge=1, le=100),
-    min_score: float = Query(default=0.4, ge=0.0, le=1.0),
-    session: AsyncSession = Depends(get_session),
-) -> PriorArtResponse:
-    """GET alias for prior art search (compat)."""
-    request = PriorArtRequest(
-        patent_number=patent_number,
-        text_query=text_query,
-        filing_date_before=filing_date_before,
-        top_k=top_k,
-        min_score=min_score,
-    )
     if not request.patent_number and not request.text_query:
         raise HTTPException(
             status_code=400,
