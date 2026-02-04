@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.schemas.whitespace import (
     CoverageResponse,
     CrossDomainResponse,
+    SectionDetailResponse,
     SectionOverviewResponse,
     WhiteSpaceResponse,
 )
@@ -132,3 +133,37 @@ async def get_section_overview(
     except Exception as e:
         logger.error("whitespace.sections_failed", error=str(e))
         raise HTTPException(status_code=500, detail="Failed to get section overview")
+
+
+@router.get("/sections/{section}", response_model=SectionDetailResponse)
+async def get_section_details(
+    section: str,
+    years: int = Query(default=5, ge=1, le=20, description="Analysis time window"),
+    recent_years: int = Query(default=3, ge=1, le=10, description="Recent trend window"),
+    top_cpc_limit: int = Query(default=10, ge=1, le=25, description="Top CPC classes"),
+    top_assignee_limit: int = Query(default=10, ge=1, le=25, description="Top assignees"),
+    session: AsyncSession = Depends(get_session),
+) -> SectionDetailResponse:
+    """Get detailed breakdown for a CPC section."""
+    logger.info(
+        "whitespace.section_detail",
+        section=section,
+        years=years,
+        recent_years=recent_years,
+    )
+
+    try:
+        result = await whitespace_service.get_section_details(
+            session,
+            section=section,
+            years=years,
+            recent_years=recent_years,
+            top_cpc_limit=top_cpc_limit,
+            top_assignee_limit=top_assignee_limit,
+        )
+        return SectionDetailResponse(**result)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("whitespace.section_detail_failed", error=str(e))
+        raise HTTPException(status_code=500, detail="Failed to get section details")

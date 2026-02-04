@@ -505,6 +505,158 @@ class WhiteSpaceService:
             "analysis_years": years,
         }
 
+    async def get_section_details(
+        self,
+        session: AsyncSession,
+        section: str,
+        years: int = 5,
+        recent_years: int = 3,
+        top_cpc_limit: int = 10,
+        top_assignee_limit: int = 10,
+    ) -> dict:
+        """Get detailed breakdown for a CPC section."""
+        section = section.upper()
+        if section not in CPC_SECTIONS:
+            raise ValueError(f"Unknown CPC section: {section}")
+
+        today = date.today()
+        start_date = today - timedelta(days=years * 365)
+        recent_start = today - timedelta(days=recent_years * 365)
+
+        section_filter = and_(
+            Patent.cpc_codes.isnot(None),
+            Patent.filing_date >= start_date,
+            func.array_to_string(Patent.cpc_codes, ",").op("~")(f"(^|,){section}[0-9]"),
+        )
+
+        section_patents = (
+            select(
+                Patent.id.label("id"),
+                Patent.status.label("status"),
+                Patent.filing_date.label("filing_date"),
+                Patent.assignee_organization.label("assignee_organization"),
+                Patent.cited_by_count.label("cited_by_count"),
+            )
+            .where(section_filter)
+            .distinct()
+            .subquery()
+        )
+
+        counts_result = await session.execute(
+            select(
+                func.count(section_patents.c.id),
+                func.count(
+                    case((section_patents.c.status == "active", section_patents.c.id), else_=None)
+                ),
+                func.count(
+                    case(
+                        (section_patents.c.status == "expired", section_patents.c.id),
+                        else_=None,
+                    )
+                ),
+                func.count(
+                    case(
+                        (section_patents.c.status == "lapsed", section_patents.c.id),
+                        else_=None,
+                    )
+                ),
+                func.count(
+                    case(
+                        (section_patents.c.filing_date >= recent_start, section_patents.c.id),
+                        else_=None,
+                    )
+                ),
+            )
+        )
+        (
+            total_patents,
+            active_patents,
+            expired_patents,
+            lapsed_patents,
+            recent_patents,
+        ) = counts_result.one()
+
+        total_patents = total_patents or 0
+        active_patents = active_patents or 0
+        expired_patents = expired_patents or 0
+        lapsed_patents = lapsed_patents or 0
+        recent_patents = recent_patents or 0
+
+        active_ratio = round(active_patents / total_patents, 3) if total_patents else 0.0
+
+        cpc_unnest = func.unnest(Patent.cpc_codes).label("cpc_code")
+        cpc_class = func.substr(cpc_unnest, 1, 4).label("cpc_class")
+
+        classes_result = await session.execute(
+            select(
+                cpc_class,
+                func.count(func.distinct(Patent.id)).label("patent_count"),
+                func.avg(Patent.cited_by_count).label("avg_citations"),
+            )
+            .where(
+                and_(
+                    Patent.cpc_codes.isnot(None),
+                    Patent.filing_date >= start_date,
+                    func.substr(cpc_unnest, 1, 1) == section,
+                )
+            )
+            .group_by(cpc_class)
+            .order_by(func.count(func.distinct(Patent.id)).desc())
+            .limit(top_cpc_limit)
+        )
+        top_cpc_classes = [
+            {
+                "cpc_code": row[0],
+                "patent_count": row[1],
+                "avg_citations": round(float(row[2] or 0), 2),
+            }
+            for row in classes_result.all()
+            if row[0]
+        ]
+
+        assignee_result = await session.execute(
+            select(
+                section_patents.c.assignee_organization,
+                func.count(section_patents.c.id).label("patent_count"),
+            )
+            .where(section_patents.c.assignee_organization.isnot(None))
+            .group_by(section_patents.c.assignee_organization)
+            .order_by(func.count(section_patents.c.id).desc())
+            .limit(top_assignee_limit)
+        )
+        top_assignees = [
+            {"assignee": row[0], "patent_count": row[1]} for row in assignee_result.all()
+        ]
+
+        trend_result = await session.execute(
+            select(
+                extract("year", section_patents.c.filing_date).label("year"),
+                func.count(section_patents.c.id).label("patent_count"),
+            )
+            .where(section_patents.c.filing_date.isnot(None))
+            .group_by("year")
+            .order_by("year")
+        )
+        filing_trend = [
+            {"year": int(row[0]), "patent_count": row[1]} for row in trend_result.all() if row[0]
+        ]
+
+        return {
+            "section": section,
+            "section_name": CPC_SECTIONS.get(section, "Unknown"),
+            "total_patents": total_patents,
+            "active_patents": active_patents,
+            "expired_patents": expired_patents,
+            "lapsed_patents": lapsed_patents,
+            "active_ratio": active_ratio,
+            "recent_patents": recent_patents,
+            "analysis_years": years,
+            "recent_years": recent_years,
+            "top_cpc_classes": top_cpc_classes,
+            "top_assignees": top_assignees,
+            "filing_trend": filing_trend,
+        }
+
     def _classify_opportunity(
         self,
         decline_ratio: float,
