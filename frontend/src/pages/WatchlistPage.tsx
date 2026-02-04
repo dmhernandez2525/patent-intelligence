@@ -22,6 +22,8 @@ interface WatchlistItem {
   notes: string | null
   notify_expiration: boolean
   notify_maintenance: boolean
+  notify_citations: boolean
+  notify_new_patents: boolean
   is_active: boolean
   unread_alerts: number
   created_at: string | null
@@ -47,11 +49,16 @@ interface AlertSummary {
 function WatchlistPage() {
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newItem, setNewItem] = useState({
+  const defaultNewItem = {
     item_type: 'patent',
     item_value: '',
     name: '',
-  })
+    notify_expiration: true,
+    notify_maintenance: true,
+    notify_citations: false,
+    notify_new_patents: false,
+  }
+  const [newItem, setNewItem] = useState(defaultNewItem)
 
   const watchlistQuery = useQuery<{ items: WatchlistItem[]; total: number }>({
     queryKey: ['watchlist'],
@@ -87,7 +94,7 @@ function WatchlistPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['watchlist'] })
       setShowAddForm(false)
-      setNewItem({ item_type: 'patent', item_value: '', name: '' })
+      setNewItem(defaultNewItem)
     },
   })
 
@@ -211,12 +218,23 @@ function WatchlistPage() {
                 <label className="text-xs font-medium text-gray-600">Type</label>
                 <select
                   value={newItem.item_type}
-                  onChange={(e) => setNewItem({ ...newItem, item_type: e.target.value })}
+                  onChange={(e) => {
+                    const nextType = e.target.value
+                    setNewItem({
+                      ...newItem,
+                      item_type: nextType,
+                      notify_expiration: nextType === 'patent',
+                      notify_maintenance: nextType === 'patent',
+                      notify_citations: false,
+                      notify_new_patents: nextType !== 'patent',
+                    })
+                  }}
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 >
                   <option value="patent">Patent</option>
                   <option value="cpc_code">CPC Code</option>
                   <option value="assignee">Assignee</option>
+                  <option value="inventor">Inventor</option>
                 </select>
               </div>
               <div>
@@ -225,7 +243,15 @@ function WatchlistPage() {
                   type="text"
                   value={newItem.item_value}
                   onChange={(e) => setNewItem({ ...newItem, item_value: e.target.value })}
-                  placeholder={newItem.item_type === 'patent' ? 'US12345678' : newItem.item_type === 'cpc_code' ? 'H01L' : 'Company Name'}
+                  placeholder={
+                    newItem.item_type === 'patent'
+                      ? 'US12345678'
+                      : newItem.item_type === 'cpc_code'
+                        ? 'H01L'
+                        : newItem.item_type === 'inventor'
+                          ? 'Inventor Name'
+                          : 'Company Name'
+                  }
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
@@ -239,6 +265,57 @@ function WatchlistPage() {
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                 />
               </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-4">
+              {newItem.item_type === 'patent' ? (
+                <>
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={newItem.notify_expiration}
+                      onChange={(e) =>
+                        setNewItem({ ...newItem, notify_expiration: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    Expiration alerts
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={newItem.notify_maintenance}
+                      onChange={(e) =>
+                        setNewItem({ ...newItem, notify_maintenance: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    Maintenance alerts
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={newItem.notify_citations}
+                      onChange={(e) =>
+                        setNewItem({ ...newItem, notify_citations: e.target.checked })
+                      }
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    Citation alerts
+                  </label>
+                </>
+              ) : (
+                <label className="flex items-center gap-2 text-xs text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={newItem.notify_new_patents}
+                    onChange={(e) =>
+                      setNewItem({ ...newItem, notify_new_patents: e.target.checked })
+                    }
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  New patent alerts
+                </label>
+              )}
             </div>
             <div className="mt-4 flex gap-2">
               <button
@@ -316,6 +393,8 @@ function WatchlistPage() {
                     <div className="mt-2 flex gap-3 text-xs text-gray-500">
                       {item.notify_expiration && <span>Expiration alerts</span>}
                       {item.notify_maintenance && <span>Maintenance alerts</span>}
+                      {item.notify_citations && <span>Citation alerts</span>}
+                      {item.notify_new_patents && <span>New patent alerts</span>}
                     </div>
                   </div>
                 ))}
