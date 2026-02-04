@@ -125,10 +125,13 @@ services:
       - key: VITE_API_URL
         sync: false
 
+  # Redis Cache Service
+  - type: redis
+    name: patent-intelligence-cache
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
 databases:
   - name: patent-intelligence-db
     databaseName: patent_intelligence
     user: postgres
-
-redis:
-  - name: patent-intelligence-cache
