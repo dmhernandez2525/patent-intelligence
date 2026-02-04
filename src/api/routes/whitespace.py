@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.schemas.whitespace import (
     CoverageResponse,
     CrossDomainResponse,
+    SectionInfo,
     SectionOverviewResponse,
     WhiteSpaceResponse,
 )
@@ -110,6 +111,23 @@ async def get_cross_domain_opportunities(
         raise HTTPException(status_code=500, detail="Failed to find cross-domain opportunities")
 
 
+@router.get("/opportunities", response_model=CrossDomainResponse)
+async def get_opportunities_alias(
+    source_cpc: str | None = Query(None, description="CPC prefix to analyze"),
+    max_results: int = Query(default=15, ge=1, le=50, description="Maximum opportunities"),
+    session: AsyncSession = Depends(get_session),
+) -> CrossDomainResponse:
+    """Compatibility alias for cross-domain opportunities."""
+    if not source_cpc:
+        raise HTTPException(status_code=400, detail="source_cpc is required")
+
+    return await get_cross_domain_opportunities(
+        source_cpc=source_cpc,
+        max_results=max_results,
+        session=session,
+    )
+
+
 @router.get("/sections", response_model=SectionOverviewResponse)
 async def get_section_overview(
     years: int = Query(default=5, ge=1, le=20, description="Analysis time window"),
@@ -132,3 +150,21 @@ async def get_section_overview(
     except Exception as e:
         logger.error("whitespace.sections_failed", error=str(e))
         raise HTTPException(status_code=500, detail="Failed to get section overview")
+
+
+@router.get("/sections/{section}", response_model=SectionInfo)
+async def get_section_detail(
+    section: str,
+    years: int = Query(default=5, ge=1, le=20, description="Analysis time window"),
+    session: AsyncSession = Depends(get_session),
+) -> SectionInfo:
+    """Get details for a single CPC section."""
+    if len(section) < 1:
+        raise HTTPException(status_code=400, detail="section must be at least 1 character")
+
+    overview = await whitespace_service.get_section_overview(session, years=years)
+    for item in overview.get("sections", []):
+        if item.get("section", "").upper() == section.upper():
+            return SectionInfo(**item)
+
+    raise HTTPException(status_code=404, detail=f"Section {section} not found")

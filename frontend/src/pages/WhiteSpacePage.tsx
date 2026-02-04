@@ -38,6 +38,22 @@ interface SectionInfo {
   trend: string
 }
 
+interface SectionDetail {
+  section: string
+  section_name: string
+  total_patents: number
+  active_patents: number
+  expired_patents: number
+  lapsed_patents: number
+  active_ratio: number
+  recent_patents: number
+  analysis_years: number
+  recent_years: number
+  top_cpc_classes: { cpc_code: string; patent_count: number; avg_citations: number }[]
+  top_assignees: { assignee: string; patent_count: number }[]
+  filing_trend: { year: number; patent_count: number }[]
+}
+
 interface CrossDomainOpportunity {
   cpc_code: string
   section: string
@@ -76,6 +92,15 @@ function WhiteSpacePage() {
     queryFn: async () => {
       if (!selectedSection) return { opportunities: [] }
       const resp = await api.get(`/whitespace/cross-domain/${selectedSection}`)
+      return resp.data
+    },
+    enabled: !!selectedSection,
+  })
+
+  const sectionDetailQuery = useQuery<SectionDetail>({
+    queryKey: ['whitespace-section-detail', selectedSection],
+    queryFn: async () => {
+      const resp = await api.get(`/whitespace/sections/${selectedSection}`)
       return resp.data
     },
     enabled: !!selectedSection,
@@ -143,7 +168,9 @@ function WhiteSpacePage() {
             <Layers className="h-5 w-5 text-gray-400" />
             Technology Landscape
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Click a section to explore cross-domain opportunities</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Click a section to explore details and cross-domain opportunities
+          </p>
 
           {sectionsQuery.isLoading && (
             <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
@@ -157,7 +184,11 @@ function WhiteSpacePage() {
               {sectionsQuery.data.sections.map((section) => (
                 <button
                   key={section.section}
-                  onClick={() => setSelectedSection(section.section)}
+                  onClick={() =>
+                    setSelectedSection((prev) =>
+                      prev === section.section ? null : section.section
+                    )
+                  }
                   className={`text-left rounded-lg border p-4 transition-all hover:shadow-sm ${
                     selectedSection === section.section
                       ? 'border-primary-500 bg-primary-50'
@@ -181,6 +212,130 @@ function WhiteSpacePage() {
             </div>
           )}
         </div>
+
+        {/* Section Details */}
+        {selectedSection && (
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Map className="h-5 w-5 text-gray-400" />
+              Section {selectedSection} Details
+            </h2>
+
+            {sectionDetailQuery.isLoading && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading section details...
+              </div>
+            )}
+
+            {sectionDetailQuery.error && (
+              <div className="mt-4 flex items-center gap-2 text-sm text-red-600">
+                <AlertCircle className="h-4 w-4" />
+                Failed to load section details
+              </div>
+            )}
+
+            {sectionDetailQuery.data && (
+              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="text-sm text-gray-500">{sectionDetailQuery.data.section_name}</div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <div className="text-gray-500">Total Patents</div>
+                      <div className="text-base font-semibold text-gray-900">
+                        {sectionDetailQuery.data.total_patents.toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Active Ratio</div>
+                      <div className="text-base font-semibold text-gray-900">
+                        {(sectionDetailQuery.data.active_ratio * 100).toFixed(0)}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Active</div>
+                      <div className="font-semibold text-gray-700">
+                        {sectionDetailQuery.data.active_patents.toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Expired</div>
+                      <div className="font-semibold text-gray-700">
+                        {sectionDetailQuery.data.expired_patents.toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Lapsed</div>
+                      <div className="font-semibold text-gray-700">
+                        {sectionDetailQuery.data.lapsed_patents.toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Recent ({sectionDetailQuery.data.recent_years}y)</div>
+                      <div className="font-semibold text-gray-700">
+                        {sectionDetailQuery.data.recent_patents.toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="text-sm font-semibold text-gray-900">Top CPC Classes</div>
+                  <div className="mt-3 space-y-2 text-xs">
+                    {sectionDetailQuery.data.top_cpc_classes.length === 0 && (
+                      <div className="text-gray-500">No CPC class data available.</div>
+                    )}
+                    {sectionDetailQuery.data.top_cpc_classes.map((cpc) => (
+                      <div key={cpc.cpc_code} className="flex items-center justify-between">
+                        <span className="font-mono text-gray-700">{cpc.cpc_code}</span>
+                        <span className="text-gray-500">
+                          {cpc.patent_count.toLocaleString()} | {cpc.avg_citations} avg
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="text-sm font-semibold text-gray-900">Top Assignees</div>
+                  <div className="mt-3 space-y-2 text-xs">
+                    {sectionDetailQuery.data.top_assignees.length === 0 && (
+                      <div className="text-gray-500">No assignee data available.</div>
+                    )}
+                    {sectionDetailQuery.data.top_assignees.map((assignee) => (
+                      <div
+                        key={assignee.assignee}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-gray-700">{assignee.assignee}</span>
+                        <span className="text-gray-500">
+                          {assignee.patent_count.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-white p-4 lg:col-span-3">
+                  <div className="text-sm font-semibold text-gray-900">Filing Trend</div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4 lg:grid-cols-6">
+                    {sectionDetailQuery.data.filing_trend.length === 0 && (
+                      <div className="text-gray-500">No filing trend data available.</div>
+                    )}
+                    {sectionDetailQuery.data.filing_trend.map((trend) => (
+                      <div key={trend.year} className="rounded-md bg-gray-50 p-2">
+                        <div className="text-gray-500">{trend.year}</div>
+                        <div className="font-semibold text-gray-700">
+                          {trend.patent_count.toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Cross-Domain Opportunities */}
         {selectedSection && (

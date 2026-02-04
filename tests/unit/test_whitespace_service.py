@@ -158,6 +158,12 @@ class TestWhiteSpaceService:
         assert h_section["total_patents"] == 1000
 
     @pytest.mark.asyncio
+    async def test_get_section_details_invalid(self, whitespace_service):
+        """Test section detail validation for invalid section."""
+        with pytest.raises(ValueError):
+            await whitespace_service.get_section_details(AsyncMock(), section="Z")
+
+    @pytest.mark.asyncio
     async def test_get_cross_domain_opportunities_empty(self, whitespace_service):
         """Test cross-domain opportunities with no results."""
         mock_session = AsyncMock()
@@ -280,3 +286,31 @@ class TestWhiteSpaceRoutes:
 
         assert response.total_patents == 40000
         assert response.sections[0].trend == "growing"
+
+    def test_section_detail_response_structure(self):
+        """Test SectionDetailResponse schema structure."""
+        from src.api.schemas.whitespace import (
+            SectionAssigneeInfo,
+            SectionClassInfo,
+            SectionDetailResponse,
+            SectionYearlyTrend,
+        )
+
+        detail = SectionDetailResponse(
+            section="H",
+            section_name="Electricity",
+            total_patents=1000,
+            active_patents=800,
+            expired_patents=150,
+            lapsed_patents=50,
+            active_ratio=0.8,
+            recent_patents=300,
+            analysis_years=5,
+            recent_years=3,
+            top_cpc_classes=[SectionClassInfo(cpc_code="H01L", patent_count=400, avg_citations=5.2)],
+            top_assignees=[SectionAssigneeInfo(assignee="Acme Corp", patent_count=120)],
+            filing_trend=[SectionYearlyTrend(year=2024, patent_count=200)],
+        )
+
+        assert detail.section_name == "Electricity"
+        assert detail.top_cpc_classes[0].cpc_code == "H01L"
