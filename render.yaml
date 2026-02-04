@@ -128,7 +128,7 @@ services:
   # Redis Cache Service
   - type: redis
     name: patent-intelligence-cache
-    plan: free
+    plan: starter
     maxmemoryPolicy: allkeys-lru
     ipAllowList: []
 
