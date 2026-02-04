@@ -1,9 +1,103 @@
 # Patent Intelligence - Render Infrastructure Configuration
 # =========================================================
-# Static site deployment for the Patent Intelligence frontend.
-# Backend services (API, worker, Redis, DB) are managed separately.
+# Full stack deployment for API, worker, and frontend.
 
 services:
+  # API Service - FastAPI (Gunicorn)
+  - type: web
+    name: patent-intelligence-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: >
+      gunicorn src.api.main:app
+      --worker-class uvicorn.workers.UvicornWorker
+      --bind 0.0.0.0:$PORT
+      --workers 2
+      --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: patent-intelligence-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: USPTO_API_KEY
+        sync: false
+      - key: EPO_CONSUMER_KEY
+        sync: false
+      - key: EPO_CONSUMER_SECRET
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DEBUG
+        value: "false"
+
+  # Worker Service - Celery
+  - type: worker
+    name: patent-intelligence-worker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A src.pipeline.orchestrator worker --loglevel=info --concurrency=2
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: patent-intelligence-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: patent-intelligence-cache
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: USPTO_API_KEY
+        sync: false
+      - key: EPO_CONSUMER_KEY
+        sync: false
+      - key: EPO_CONSUMER_SECRET
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DEBUG
+        value: "false"
+
   # Static Site - React/Vite Frontend
   - type: web
     name: patent-intelligence
@@ -30,3 +124,11 @@ services:
         value: "20"
       - key: VITE_API_URL
         sync: false
+
+databases:
+  - name: patent-intelligence-db
+    databaseName: patent_intelligence
+    user: postgres
+
+redis:
+  - name: patent-intelligence-cache
