@@ -1,4 +1,5 @@
 from celery import Celery
+from celery.schedules import crontab
 
 from src.config import settings
 
@@ -19,6 +20,12 @@ celery_app.conf.update(
     task_soft_time_limit=3000,
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=100,
+    beat_schedule={
+        "watchlist-alerts-schedule": {
+            "task": "pipeline.generate_watchlist_alerts",
+            "schedule": crontab(minute=0, hour="*/6"),
+        },
+    },
 )
 
 
@@ -143,3 +150,22 @@ def generate_embeddings_task(self, patent_ids: list[int] | None = None, batch_si
 
     processed = _run_async(_run())
     return {"status": "completed", "processed": processed}
+
+
+@celery_app.task(name="pipeline.generate_watchlist_alerts", bind=True)
+def generate_watchlist_alerts_task(self):
+    """Background task for generating watchlist alerts."""
+    from src.utils.logger import logger
+
+    logger.info("task.watchlist_alerts.started", task_id=self.request.id)
+
+    async def _run():
+        from src.database.connection import get_db_session
+        from src.services.watchlist_service import watchlist_service
+
+        async with get_db_session() as session:
+            return await watchlist_service.generate_alerts_for_all_users(session)
+
+    total_created = _run_async(_run())
+    logger.info("task.watchlist_alerts.completed", alerts_created=total_created)
+    return {"status": "completed", "alerts_created": total_created}

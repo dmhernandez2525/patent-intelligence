@@ -1,12 +1,29 @@
 """API routes for watchlist and alerts management."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+import hmac
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.database.connection import get_session
 from src.services.watchlist_service import watchlist_service
 from src.utils.logger import logger
+
+
+async def verify_admin_api_key(x_api_key: str = Header(..., alias="X-API-Key")) -> None:
+    """Verify the admin API key for protected endpoints."""
+    if not settings.admin_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Admin API key not configured",
+        )
+    if not hmac.compare_digest(x_api_key, settings.admin_api_key):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key",
+        )
 
 router = APIRouter()
 
@@ -269,14 +286,17 @@ async def dismiss_alert(
     return {"success": True}
 
 
-@router.post("/generate-alerts")
+@router.post("/generate-alerts", dependencies=[Depends(verify_admin_api_key)])
 async def generate_alerts(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
-    """Generate alerts for watchlist items (admin/cron endpoint)."""
+    """Generate alerts for watchlist items (admin/cron endpoint).
+
+    Requires X-API-Key header with a valid admin API key.
+    """
     logger.info("watchlist.generate_alerts")
 
-    count = await watchlist_service.generate_alerts(session)
+    count = await watchlist_service.generate_alerts_for_all_users(session)
     await session.commit()
 
     return {"success": True, "alerts_created": count}
