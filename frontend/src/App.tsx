@@ -9,21 +9,25 @@ import IdeasPage from './pages/IdeasPage'
 import WhiteSpacePage from './pages/WhiteSpacePage'
 import WatchlistPage from './pages/WatchlistPage'
 import IngestionPage from './pages/IngestionPage'
+import BottomNav from './components/BottomNav'
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/search" element={<SearchPage />} />
-      <Route path="/expiration" element={<ExpirationPage />} />
-      <Route path="/similarity" element={<SimilarityPage />} />
-      <Route path="/trends" element={<TrendsPage />} />
-      <Route path="/ideas" element={<IdeasPage />} />
-      <Route path="/whitespace" element={<WhiteSpacePage />} />
-      <Route path="/watchlist" element={<WatchlistPage />} />
-      <Route path="/ingestion" element={<IngestionPage />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/expiration" element={<ExpirationPage />} />
+        <Route path="/similarity" element={<SimilarityPage />} />
+        <Route path="/trends" element={<TrendsPage />} />
+        <Route path="/ideas" element={<IdeasPage />} />
+        <Route path="/whitespace" element={<WhiteSpacePage />} />
+        <Route path="/watchlist" element={<WatchlistPage />} />
+        <Route path="/ingestion" element={<IngestionPage />} />
+      </Routes>
+      <BottomNav />
+    </>
   )
 }
 

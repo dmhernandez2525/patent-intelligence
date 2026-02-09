@@ -71,13 +71,13 @@ function IngestionPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -91,10 +91,10 @@ function IngestionPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Data Ingestion</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Data Ingestion</h1>
             <p className="mt-1 text-sm text-gray-600">
               Manage patent data ingestion from USPTO PatentsView and EPO Open Patent Services.
             </p>
@@ -113,7 +113,7 @@ function IngestionPage() {
           <p className="mt-1 text-sm text-gray-600">
             Start a new patent data ingestion job from the selected data source.
           </p>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Data Source</label>
               <select
@@ -192,7 +192,7 @@ function IngestionPage() {
               <p className="mt-3 text-sm text-gray-500">No ingestion jobs yet. Start one above.</p>
             </div>
           ) : (
-            <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

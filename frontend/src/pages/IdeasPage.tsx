@@ -85,13 +85,13 @@ function IdeasPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -105,10 +105,10 @@ function IdeasPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <Sparkles className="h-6 w-6 text-primary-600" />
-          <h1 className="text-2xl font-bold text-gray-900">AI Idea Generation</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">AI Idea Generation</h1>
         </div>
         <p className="mt-1 text-sm text-gray-600">
           Generate novel invention ideas using AI analysis of expiring patents, technology trends, and cross-domain combinations.
@@ -297,14 +297,14 @@ function IdeaCard({ idea, index }: { idea: GeneratedIdea; index: number }) {
       : 'text-gray-700 bg-gray-50 border-gray-200'
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 hover:border-primary-200 hover:shadow-sm transition-all">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
+    <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5 hover:border-primary-200 hover:shadow-sm transition-all">
+      <div className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-700 shrink-0">
               {index}
             </span>
-            <h3 className="text-base font-semibold text-gray-900">{idea.title}</h3>
+            <h3 className="text-sm sm:text-base font-semibold text-gray-900">{idea.title}</h3>
           </div>
           <p className="mt-2 text-sm text-gray-700">{idea.description}</p>
           <div className="mt-3 rounded-md bg-gray-50 p-3">

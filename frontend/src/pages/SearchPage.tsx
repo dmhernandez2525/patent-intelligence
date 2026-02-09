@@ -44,13 +44,13 @@ function SearchPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -64,13 +64,13 @@ function SearchPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900">Patent Search</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Patent Search</h1>
         <p className="mt-1 text-sm text-gray-600">Search 200M+ patents using AI-powered semantic or traditional keyword search.</p>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="mt-6">
-          <div className="flex gap-3">
+        <form onSubmit={handleSearch} className="mt-4 sm:mt-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
               <input
@@ -83,7 +83,7 @@ function SearchPage() {
             </div>
             <button
               type="submit"
-              className="rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
+              className="rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-700 transition-colors w-full sm:w-auto"
             >
               Search
             </button>
@@ -112,12 +112,12 @@ function SearchPage() {
         </form>
 
         {/* Filters */}
-        <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4">
+        <div className="mt-3 sm:mt-4 rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Filter className="h-4 w-4" />
             <span>Filters</span>
           </div>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
@@ -246,11 +246,11 @@ function SearchResultCard({ result }: { result: SearchResult }) {
   }[result.status] || 'bg-gray-100 text-gray-700'
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 hover:border-primary-200 hover:shadow-sm transition-all">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-mono text-primary-600">{result.patent_number}</span>
+    <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5 hover:border-primary-200 hover:shadow-sm transition-all">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs sm:text-sm font-mono text-primary-600">{result.patent_number}</span>
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusColor}`}>
               {result.status}
             </span>
