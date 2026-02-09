@@ -108,12 +108,12 @@ function IngestionPage() {
         </div>
 
         {/* Trigger Controls */}
-        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
+        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900">Trigger Ingestion</h2>
           <p className="mt-1 text-sm text-gray-600">
             Start a new patent data ingestion job from the selected data source.
           </p>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Data Source</label>
               <select
@@ -193,7 +193,7 @@ function IngestionPage() {
             </div>
           ) : (
             <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-[750px] w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>

@@ -90,7 +90,7 @@ function SearchPage() {
           </div>
 
           {/* Search Type */}
-          <div className="mt-3 flex items-center gap-4">
+          <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-4">
             <span className="text-xs font-medium text-gray-500 uppercase">Search Mode:</span>
             <div className="flex gap-2">
               {(['hybrid', 'semantic', 'fulltext'] as const).map((type) => (

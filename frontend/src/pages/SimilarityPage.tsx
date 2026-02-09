@@ -183,7 +183,7 @@ function SimilarityPage() {
           </div>
 
           {/* Input Field */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             {inputType === 'text' ? (
               <textarea
                 value={textQuery}
@@ -207,7 +207,7 @@ function SimilarityPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-700 transition-colors disabled:opacity-50 self-end"
+              className="rounded-lg bg-primary-600 px-6 py-3 text-sm font-semibold text-white hover:bg-primary-700 transition-colors disabled:opacity-50 self-end w-full sm:w-auto"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />

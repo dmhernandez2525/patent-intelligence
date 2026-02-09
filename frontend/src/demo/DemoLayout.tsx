@@ -43,13 +43,13 @@ export function DemoLayout({ children, title, description, alertCount }: DemoLay
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/demo" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
                 <span className="ml-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
                   Demo
                 </span>
@@ -80,8 +80,8 @@ export function DemoLayout({ children, title, description, alertCount }: DemoLay
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h1>
         <p className="mt-1 text-sm text-gray-600">{description}</p>
         {children}
       </main>
