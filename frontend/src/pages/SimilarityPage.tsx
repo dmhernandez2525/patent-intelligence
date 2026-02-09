@@ -99,13 +99,13 @@ function SimilarityPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -119,35 +119,35 @@ function SimilarityPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900">Patent Similarity & Prior Art</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Patent Similarity & Prior Art</h1>
         <p className="mt-1 text-sm text-gray-600">
           Find similar patents using AI embeddings or discover prior art for patentability analysis.
         </p>
 
         {/* Mode Selector */}
-        <div className="mt-6 flex gap-2">
+        <div className="mt-4 sm:mt-6 flex gap-2">
           <button
             onClick={() => setMode('similar')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${
               mode === 'similar'
                 ? 'bg-primary-100 text-primary-700 border border-primary-200'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             <Layers className="h-4 w-4" />
-            Find Similar Patents
+            <span className="hidden sm:inline">Find </span>Similar
           </button>
           <button
             onClick={() => setMode('prior-art')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${
               mode === 'prior-art'
                 ? 'bg-primary-100 text-primary-700 border border-primary-200'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             <GitBranch className="h-4 w-4" />
-            Prior Art Search
+            Prior Art
           </button>
         </div>
 
@@ -260,17 +260,17 @@ function SimilarityPage() {
 
         {/* Prior Art Stats */}
         {mode === 'prior-art' && priorArtMutation.data && (
-          <div className="mt-4 flex gap-4">
-            <div className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
-              <span className="text-gray-500">Total found:</span>{' '}
+          <div className="mt-4 flex flex-wrap gap-2 sm:gap-4">
+            <div className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm">
+              <span className="text-gray-500">Total:</span>{' '}
               <span className="font-medium">{priorArtMutation.data.total_found}</span>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
-              <span className="text-gray-500">Semantic matches:</span>{' '}
+            <div className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm">
+              <span className="text-gray-500">Semantic:</span>{' '}
               <span className="font-medium">{priorArtMutation.data.semantic_count}</span>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm">
-              <span className="text-gray-500">Citation matches:</span>{' '}
+            <div className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm">
+              <span className="text-gray-500">Citation:</span>{' '}
               <span className="font-medium">{priorArtMutation.data.citation_count}</span>
             </div>
           </div>
@@ -339,11 +339,11 @@ function SimilarPatentCard({ patent, mode }: { patent: SimilarPatent; mode: Sear
       : 'text-green-600 bg-green-50 border-green-200'
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 hover:border-primary-200 hover:shadow-sm transition-all">
-      <div className="flex items-start justify-between">
+    <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5 hover:border-primary-200 hover:shadow-sm transition-all">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-mono text-primary-600">{patent.patent_number}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="text-xs sm:text-sm font-mono text-primary-600">{patent.patent_number}</span>
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
               patent.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
             }`}>

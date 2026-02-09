@@ -7,12 +7,12 @@ function Landing() {
       {/* Navigation */}
       <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                 <Zap className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Patent Intelligence</span>
+              <span className="text-lg sm:text-xl font-bold text-gray-900">Patent Intelligence</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900">Features</a>
@@ -23,7 +23,7 @@ function Landing() {
             <div className="flex items-center gap-4">
               <Link
                 to="/search"
-                className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
+                className="rounded-lg bg-primary-600 px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
               >
                 Get Started
               </Link>
@@ -33,20 +33,20 @@ function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary-50 to-white py-20 sm:py-32">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary-50 to-white py-12 sm:py-20 lg:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center rounded-full bg-primary-100 px-4 py-1.5 text-sm font-medium text-primary-700">
+            <div className="mb-4 sm:mb-6 inline-flex items-center rounded-full bg-primary-100 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-primary-700">
               AI-Powered Patent Intelligence Platform
             </div>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:text-6xl">
               Discover What's Expiring, What's Missing, and What's Next
             </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
+            <p className="mt-4 sm:mt-6 text-base sm:text-lg leading-7 sm:leading-8 text-gray-600">
               Search 200M+ patents globally, track expirations, discover white space opportunities,
               and generate AI-powered invention ideas — all in one platform built for innovators.
             </p>
-            <div className="mt-10 flex items-center justify-center gap-4 flex-wrap">
+            <div className="mt-8 sm:mt-10 flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
               <Link
                 to="/search"
                 className="rounded-lg bg-primary-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-primary-700 transition-colors"
@@ -144,9 +144,9 @@ function Landing() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="border-y border-gray-200 bg-gray-50 py-20">
+      <section id="how-it-works" className="border-y border-gray-200 bg-gray-50 py-12 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center mb-16">
+          <div className="mx-auto max-w-2xl text-center mb-10 sm:mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               How It Works
             </h2>
@@ -154,7 +154,7 @@ function Landing() {
               From search to strategy in minutes, not months.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <StepCard
               number="1"
               title="Search"
@@ -241,7 +241,7 @@ function Landing() {
       </section>
 
       {/* Coming Soon Section */}
-      <section className="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 py-20">
+      <section className="bg-gradient-to-br from-purple-900 via-indigo-900 to-purple-800 py-12 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-purple-200 mb-6">
@@ -306,7 +306,7 @@ function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary-600 py-16">
+      <section className="bg-primary-600 py-10 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-white">Ready to discover patent opportunities?</h2>

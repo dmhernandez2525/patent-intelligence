@@ -134,13 +134,13 @@ function TrendsPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -154,35 +154,35 @@ function TrendsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900">Citation Network & Trends</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Citation Network & Trends</h1>
         <p className="mt-1 text-sm text-gray-600">
           Explore technology trends, citation networks, and competitive landscape analysis.
         </p>
 
         {/* Mode Selector */}
-        <div className="mt-6 flex gap-2">
+        <div className="mt-4 sm:mt-6 flex gap-2">
           <button
             onClick={() => setViewMode('trends')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${
               viewMode === 'trends'
                 ? 'bg-primary-100 text-primary-700 border border-primary-200'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             <TrendingUp className="h-4 w-4" />
-            Technology Trends
+            Trends
           </button>
           <button
             onClick={() => setViewMode('citations')}
-            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 rounded-lg px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${
               viewMode === 'citations'
                 ? 'bg-primary-100 text-primary-700 border border-primary-200'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             <GitBranch className="h-4 w-4" />
-            Citation Network
+            Citations
           </button>
         </div>
 
@@ -250,7 +250,7 @@ function TrendsPage() {
                 </div>
 
                 {/* Grid: Top CPC + Growth Leaders + Top Assignees */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {/* Top CPC Trends */}
                   <div className="rounded-lg border border-gray-200 bg-white p-5">
                     <h2 className="text-sm font-semibold text-gray-900">Top Technology Areas</h2>
@@ -325,8 +325,8 @@ function TrendsPage() {
         {viewMode === 'citations' && (
           <div className="mt-6 space-y-6">
             {/* Search Form */}
-            <form onSubmit={handleCitationSearch} className="rounded-lg border border-gray-200 bg-white p-5">
-              <div className="flex gap-3">
+            <form onSubmit={handleCitationSearch} className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <input
                   type="text"
                   value={patentNumber}
@@ -434,7 +434,7 @@ function TrendsPage() {
                 {/* Edge Summary */}
                 <div className="rounded-lg border border-gray-200 bg-white p-4">
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">Citation Relationships</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                  <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto sm:grid-cols-2">
                     {citationMutation.data.edges.map((edge, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
                         <span className="font-mono">{edge.source}</span>

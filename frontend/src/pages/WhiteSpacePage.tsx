@@ -132,13 +132,13 @@ function WhiteSpacePage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -153,10 +153,10 @@ function WhiteSpacePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <Map className="h-6 w-6 text-primary-600" />
-          <h1 className="text-2xl font-bold text-gray-900">White Space Discovery</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Map className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">White Space Discovery</h1>
         </div>
         <p className="mt-1 text-sm text-gray-600">
           Identify technology gaps and untapped innovation opportunities across the patent landscape.
@@ -180,7 +180,7 @@ function WhiteSpacePage() {
           )}
 
           {sectionsQuery.data && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5">
               {sectionsQuery.data.sections.map((section) => (
                 <button
                   key={section.section}
@@ -236,7 +236,7 @@ function WhiteSpacePage() {
             )}
 
             {sectionDetailQuery.data && (
-              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-3">
                 <div className="rounded-lg border border-gray-200 bg-white p-4">
                   <div className="text-sm text-gray-500">{sectionDetailQuery.data.section_name}</div>
                   <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
@@ -468,7 +468,7 @@ function WhiteSpacePage() {
                         <div className="text-xs text-gray-500">gap score</div>
                       </div>
                     </div>
-                    <div className="mt-3 grid grid-cols-4 gap-4 text-xs">
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs">
                       <div>
                         <div className="text-gray-500">Historical</div>
                         <div className="font-semibold text-gray-700">{ws.historical_patents}</div>

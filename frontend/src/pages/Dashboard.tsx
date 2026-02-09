@@ -59,13 +59,13 @@ function Dashboard() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/search" className="text-sm font-medium text-gray-600 hover:text-gray-900">Search</Link>
@@ -89,12 +89,12 @@ function Dashboard() {
       </header>
 
       {/* Dashboard Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-600">Overview of your patent intelligence platform.</p>
 
         {/* Stats Grid */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           <StatCard
             icon={<Search className="h-5 w-5" />}
             label="Total Patents"
@@ -122,9 +122,9 @@ function Dashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 sm:mt-8">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Quick Actions</h2>
+          <div className="mt-3 sm:mt-4 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <ActionCard
               to="/search"
               title="Search Patents"
@@ -182,17 +182,17 @@ function Dashboard() {
 
 function StatCard({ icon, label, value, change }: { icon: React.ReactNode; label: string; value: string; change: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
+    <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-primary-100 text-primary-600 shrink-0">
           {icon}
         </div>
-        <div>
-          <p className="text-sm text-gray-600">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <div className="min-w-0">
+          <p className="text-xs sm:text-sm text-gray-600 truncate">{label}</p>
+          <p className="text-lg sm:text-2xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-      <p className="mt-2 text-xs text-gray-500">{change}</p>
+      <p className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 truncate">{change}</p>
     </div>
   )
 }

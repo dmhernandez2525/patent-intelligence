@@ -140,13 +140,13 @@ function ExpirationPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -160,20 +160,20 @@ function ExpirationPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-bold text-gray-900">Expiration Intelligence</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Expiration Intelligence</h1>
         <p className="mt-1 text-sm text-gray-600">
           Track patent expirations, maintenance fees, and discover lapsed patent opportunities.
           50% of patents lapse due to non-payment of maintenance fees.
         </p>
 
         {/* Tabs */}
-        <div className="mt-6 flex gap-1 border-b border-gray-200">
+        <div className="mt-4 sm:mt-6 flex gap-1 border-b border-gray-200 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setPage(1) }}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-primary-600 text-primary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -188,7 +188,7 @@ function ExpirationPage() {
         {activeTab === 'overview' && (
           <div className="mt-6 space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               <StatCard
                 icon={<AlertTriangle className="h-5 w-5 text-yellow-600" />}
                 label="Expiring in 30 Days"
@@ -418,12 +418,12 @@ function StatCard({
   textColor: string
 }) {
   return (
-    <div className={`rounded-lg border ${borderColor} ${bgColor} p-4`}>
-      <div className="flex items-center gap-2">
+    <div className={`rounded-lg border ${borderColor} ${bgColor} p-3 sm:p-4`}>
+      <div className="flex items-center gap-1.5 sm:gap-2">
         {icon}
-        <span className={`text-sm font-medium ${textColor}`}>{label}</span>
+        <span className={`text-xs sm:text-sm font-medium ${textColor} truncate`}>{label}</span>
       </div>
-      <p className={`mt-2 text-2xl font-bold ${textColor}`}>{value.toLocaleString()}</p>
+      <p className={`mt-1 sm:mt-2 text-xl sm:text-2xl font-bold ${textColor}`}>{value.toLocaleString()}</p>
     </div>
   )
 }
@@ -450,12 +450,12 @@ function FilterBar({
   showDays?: boolean
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 mb-4">
+    <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4 mb-3 sm:mb-4">
       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
         <Filter className="h-4 w-4" />
         <span>Filters</span>
       </div>
-      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
         {showDays && onDaysChange && (
           <select
             value={days}
@@ -588,11 +588,11 @@ function ExpirationCard({ patent, showLapsed }: { patent: ExpiringPatent; showLa
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-5 hover:border-primary-200 hover:shadow-sm transition-all">
-      <div className="flex items-start justify-between">
+    <div className="rounded-lg border border-gray-200 bg-white p-3 sm:p-5 hover:border-primary-200 hover:shadow-sm transition-all">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-mono text-primary-600">{patent.patent_number}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="text-xs sm:text-sm font-mono text-primary-600">{patent.patent_number}</span>
             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
               patent.status === 'active' ? 'bg-green-100 text-green-700' :
               patent.status === 'lapsed' ? 'bg-yellow-100 text-yellow-700' :

@@ -7,3 +7,31 @@
     @apply bg-gray-50 text-gray-900;
   }
 }
+
+/* Bottom nav slide-up animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.bottom-nav {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Safe area padding for devices with home indicator */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Add bottom padding on mobile so content isn't hidden behind bottom nav */
+@media (max-width: 639px) {
+  main {
+    padding-bottom: 4.5rem !important;
+  }
+}

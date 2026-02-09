@@ -152,13 +152,13 @@ function WatchlistPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
                   <Zap className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-lg font-bold text-gray-900">Patent Intelligence</span>
+                <span className="text-base sm:text-lg font-bold text-gray-900">Patent Intelligence</span>
               </Link>
               <nav className="hidden sm:flex items-center gap-4">
                 <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
@@ -172,18 +172,19 @@ function WatchlistPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Eye className="h-6 w-6 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Watchlist</h1>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Eye className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Watchlist</h1>
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-600 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-primary-700 shrink-0"
           >
             <Plus className="h-4 w-4" />
-            Add Item
+            <span className="hidden sm:inline">Add Item</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
         <p className="mt-1 text-sm text-gray-600">
@@ -211,9 +212,9 @@ function WatchlistPage() {
 
         {/* Add Form */}
         {showAddForm && (
-          <form onSubmit={handleAdd} className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
+          <form onSubmit={handleAdd} className="mt-4 sm:mt-6 rounded-lg border border-gray-200 bg-white p-3 sm:p-4">
             <h3 className="text-sm font-semibold text-gray-900">Add to Watchlist</h3>
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-3">
               <div>
                 <label className="text-xs font-medium text-gray-600">Type</label>
                 <select
