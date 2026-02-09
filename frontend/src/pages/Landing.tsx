@@ -154,7 +154,7 @@ function Landing() {
               From search to strategy in minutes, not months.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <StepCard
               number="1"
               title="Search"
@@ -182,7 +182,7 @@ function Landing() {
       {/* Stats Section */}
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-8 sm:grid-cols-4">
             <StatItem value="200M+" label="Global Patents" icon={<Database className="h-5 w-5" />} />
             <StatItem value="170+" label="Jurisdictions" icon={<Globe className="h-5 w-5" />} />
             <StatItem value="50%" label="Patents Lapse" icon={<Clock className="h-5 w-5" />} />
@@ -284,21 +284,21 @@ function Landing() {
             </div>
           </div>
 
-          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto text-center">
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto text-center">
             <div className="p-4">
-              <p className="text-2xl font-bold text-purple-300">&lt;500ms</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-300">&lt;500ms</p>
               <p className="text-xs text-purple-200/70">Response Time</p>
             </div>
             <div className="p-4">
-              <p className="text-2xl font-bold text-purple-300">Full Duplex</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-300">Full Duplex</p>
               <p className="text-xs text-purple-200/70">Natural Conversation</p>
             </div>
             <div className="p-4">
-              <p className="text-2xl font-bold text-purple-300">100%</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-300">100%</p>
               <p className="text-xs text-purple-200/70">Local Processing</p>
             </div>
             <div className="p-4">
-              <p className="text-2xl font-bold text-purple-300">Hands-Free</p>
+              <p className="text-xl sm:text-2xl font-bold text-purple-300">Hands-Free</p>
               <p className="text-xs text-purple-200/70">Voice Control</p>
             </div>
           </div>
@@ -309,11 +309,11 @@ function Landing() {
       <section className="bg-primary-600 py-10 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white">Ready to discover patent opportunities?</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white">Ready to discover patent opportunities?</h2>
             <p className="mt-4 text-lg text-primary-100">
               Start searching now — no credit card required.
             </p>
-            <div className="mt-8 flex justify-center gap-4">
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4 sm:px-0">
               <Link
                 to="/search"
                 className="rounded-lg bg-white px-6 py-3 text-base font-semibold text-primary-600 shadow-sm hover:bg-primary-50 transition-colors"
@@ -411,7 +411,7 @@ function StatItem({ value, label, icon }: { value: string; label: string; icon: 
   return (
     <div className="text-center">
       <div className="flex justify-center text-primary-600 mb-2">{icon}</div>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <p className="text-2xl sm:text-3xl font-bold text-gray-900">{value}</p>
       <p className="mt-1 text-sm text-gray-600">{label}</p>
     </div>
   )
