@@ -7,10 +7,28 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.config import settings
-from src.models import ingestion, organization, patent, user, watchlist
+from src.models import (
+    collaboration_content,
+    collaboration_watchlist,
+    ingestion,
+    organization,
+    patent,
+    research_project,
+    user,
+    watchlist,
+)
 from src.models.base import Base
 
-_MODEL_MODULES = (ingestion, organization, patent, user, watchlist)
+_MODEL_MODULES = (
+    collaboration_content,
+    collaboration_watchlist,
+    ingestion,
+    organization,
+    patent,
+    research_project,
+    user,
+    watchlist,
+)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

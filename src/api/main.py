@@ -8,6 +8,10 @@ from src.api.middleware.auth_context import AuthContextMiddleware
 from src.api.routes import (
     analysis,
     auth,
+    collaboration_content,
+    collaboration_mentions,
+    collaboration_projects,
+    collaboration_watchlists,
     expiration,
     health,
     ideas,
@@ -58,5 +62,17 @@ app.include_router(similarity.router, prefix="/api/similarity", tags=["Similarit
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(ideas.router, prefix="/api/ideas", tags=["Ideas"])
 app.include_router(watchlist.router, prefix="/api/watchlist", tags=["Watchlist"])
+app.include_router(
+    collaboration_watchlists.router, prefix="/api/collaboration", tags=["Collaboration"]
+)
+app.include_router(
+    collaboration_projects.router, prefix="/api/collaboration", tags=["Collaboration"]
+)
+app.include_router(
+    collaboration_content.router, prefix="/api/collaboration", tags=["Collaboration"]
+)
+app.include_router(
+    collaboration_mentions.router, prefix="/api/collaboration", tags=["Collaboration"]
+)
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])
