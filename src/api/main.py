@@ -18,6 +18,7 @@ from src.api.routes import (
     ideas,
     ingestion,
     patents,
+    reports,
     search,
     similarity,
     watchlist,
@@ -78,5 +79,6 @@ app.include_router(
 app.include_router(
     alert_channels.router, prefix="/api/alerts", tags=["Alerts"]
 )
+app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])

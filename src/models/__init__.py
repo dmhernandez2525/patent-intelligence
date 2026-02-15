@@ -31,6 +31,14 @@ from src.models.patent import (
     PatentFamily,
     PatentFamilyMember,
 )
+from src.models.report import (
+    ReportFormat,
+    ReportSchedule,
+    ReportStatus,
+    ReportTemplate,
+    ReportType,
+    ResearchReport,
+)
 from src.models.research_project import (
     ProjectPermission,
     ProjectStatus,
@@ -68,9 +76,15 @@ __all__ = [
     "PatentFamilyMember",
     "ProjectPermission",
     "ProjectStatus",
+    "ReportFormat",
+    "ReportSchedule",
+    "ReportStatus",
+    "ReportTemplate",
+    "ReportType",
     "ResearchProject",
     "ResearchProjectMember",
     "ResearchProjectPatent",
+    "ResearchReport",
     "SharedPermission",
     "SharedWatchlist",
     "SharedWatchlistInvite",
