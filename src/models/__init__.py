@@ -1,3 +1,12 @@
+from src.models.alert_channel import (
+    AlertDelivery,
+    AlertSchedule,
+    AlertTemplate,
+    ChannelType,
+    DeliveryStatus,
+    DigestFrequency,
+    NotificationChannel,
+)
 from src.models.base import Base
 from src.models.collaboration_content import (
     CollaborativeAnnotation,
@@ -34,13 +43,20 @@ from src.models.watchlist import Alert, WatchlistItem
 
 __all__ = [
     "Alert",
+    "AlertDelivery",
+    "AlertSchedule",
+    "AlertTemplate",
     "Base",
+    "ChannelType",
     "Citation",
     "CollaborativeAnnotation",
+    "DeliveryStatus",
+    "DigestFrequency",
     "IngestionCheckpoint",
     "IngestionJob",
     "MaintenanceFee",
     "MentionNotification",
+    "NotificationChannel",
     "Organization",
     "OrganizationInvite",
     "OrganizationMember",
