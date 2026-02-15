@@ -63,7 +63,10 @@ class WatchlistService:
         notes: str | None = None,
         notify_expiration: bool = True,
         notify_maintenance: bool = True,
+        notify_citations: bool = False,
+        notify_new_patents: bool = False,
         expiration_lead_days: int = 90,
+        maintenance_lead_days: int = 30,
     ) -> dict:
         """Add an item to the watchlist."""
         # Check if already exists
@@ -95,7 +98,10 @@ class WatchlistService:
             notes=notes,
             notify_expiration=notify_expiration,
             notify_maintenance=notify_maintenance,
+            notify_citations=notify_citations,
+            notify_new_patents=notify_new_patents,
             expiration_lead_days=expiration_lead_days,
+            maintenance_lead_days=maintenance_lead_days,
         )
 
         session.add(item)
@@ -319,6 +325,20 @@ class WatchlistService:
         )
 
         return alerts_created
+
+    async def generate_alerts_for_all_users(self, session: AsyncSession) -> int:
+        """Generate alerts for each user with watchlist items."""
+        result = await session.execute(select(WatchlistItem.user_id).distinct())
+        user_rows = result.all()
+
+        total_alerts = 0
+        for row in user_rows:
+            user_id = row[0]
+            if not user_id:
+                continue
+            total_alerts += await self.generate_alerts(session, user_id=user_id)
+
+        return total_alerts
 
     async def _check_expiration_alert(
         self,

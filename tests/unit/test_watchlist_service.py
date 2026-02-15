@@ -173,7 +173,7 @@ class TestWatchlistRouteSchemas:
 
     def test_add_request_schema(self):
         """Test WatchlistAddRequest schema."""
-        from src.api.routes.watchlist import WatchlistAddRequest
+        from src.api.schemas.watchlist import WatchlistAddRequest
 
         request = WatchlistAddRequest(
             item_type="patent",
@@ -187,7 +187,7 @@ class TestWatchlistRouteSchemas:
 
     def test_update_request_schema(self):
         """Test WatchlistUpdateRequest schema."""
-        from src.api.routes.watchlist import WatchlistUpdateRequest
+        from src.api.schemas.watchlist import WatchlistUpdateRequest
 
         request = WatchlistUpdateRequest(
             name="Updated Name",
@@ -199,7 +199,7 @@ class TestWatchlistRouteSchemas:
 
     def test_alert_summary_response(self):
         """Test AlertSummaryResponse schema."""
-        from src.api.routes.watchlist import AlertSummaryResponse
+        from src.api.schemas.watchlist import AlertSummaryResponse
 
         response = AlertSummaryResponse(
             total_unread=5,

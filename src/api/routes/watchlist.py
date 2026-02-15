@@ -2,12 +2,22 @@
 
 import hmac
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import RequestUserContext, get_optional_request_user, resolve_user_id
+from src.api.schemas.watchlist import (
+    AlertListResponse,
+    AlertResponse,
+    AlertSummaryResponse,
+    WatchlistAddRequest,
+    WatchlistItemResponse,
+    WatchlistResponse,
+    WatchlistUpdateRequest,
+)
 from src.config import settings
 from src.database.connection import get_session
+from src.services.activity_service import activity_service
 from src.services.watchlist_service import watchlist_service
 from src.utils.logger import logger
 
@@ -25,102 +35,8 @@ async def verify_admin_api_key(x_api_key: str = Header(..., alias="X-API-Key")) 
             detail="Invalid API key",
         )
 
+
 router = APIRouter()
-
-
-class WatchlistAddRequest(BaseModel):
-    """Request to add item to watchlist."""
-
-    item_type: str = Field(..., pattern="^(patent|cpc_code|assignee|inventor)$")
-    item_value: str = Field(..., min_length=1, max_length=255)
-    name: str | None = Field(None, max_length=255)
-    notes: str | None = Field(None, max_length=1000)
-    notify_expiration: bool = True
-    notify_maintenance: bool = True
-    notify_citations: bool = False
-    notify_new_patents: bool = False
-    expiration_lead_days: int = Field(default=90, ge=1, le=365)
-    maintenance_lead_days: int = Field(default=30, ge=1, le=180)
-
-
-class WatchlistUpdateRequest(BaseModel):
-    """Request to update watchlist item."""
-
-    name: str | None = None
-    notes: str | None = None
-    notify_expiration: bool | None = None
-    notify_maintenance: bool | None = None
-    notify_citations: bool | None = None
-    notify_new_patents: bool | None = None
-    expiration_lead_days: int | None = Field(None, ge=1, le=365)
-    maintenance_lead_days: int | None = Field(None, ge=1, le=180)
-    is_active: bool | None = None
-
-
-class WatchlistItemResponse(BaseModel):
-    """Response for a watchlist item."""
-
-    id: int
-    item_type: str
-    item_value: str
-    patent_id: int | None
-    name: str | None
-    notes: str | None
-    notify_expiration: bool
-    notify_maintenance: bool
-    notify_citations: bool
-    notify_new_patents: bool
-    expiration_lead_days: int
-    maintenance_lead_days: int
-    is_active: bool
-    unread_alerts: int
-    created_at: str | None
-
-
-class WatchlistResponse(BaseModel):
-    """Response for watchlist listing."""
-
-    items: list[WatchlistItemResponse]
-    total: int
-    page: int
-    per_page: int
-
-
-class AlertResponse(BaseModel):
-    """Response for an alert."""
-
-    id: int
-    watchlist_item_id: int
-    alert_type: str
-    priority: str
-    title: str
-    message: str
-    related_patent_number: str | None
-    related_data: dict | None
-    trigger_date: str | None
-    due_date: str | None
-    is_read: bool
-    is_dismissed: bool
-    created_at: str | None
-
-
-class AlertListResponse(BaseModel):
-    """Response for alert listing."""
-
-    alerts: list[AlertResponse]
-    total: int
-    page: int
-    per_page: int
-
-
-class AlertSummaryResponse(BaseModel):
-    """Response for alert summary."""
-
-    total_unread: int
-    by_type: dict[str, int]
-    by_priority: dict[str, int]
-    critical_count: int
-    high_count: int
 
 
 @router.get("", response_model=WatchlistResponse)
@@ -129,13 +45,16 @@ async def get_watchlist(
     include_inactive: bool = Query(False),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> WatchlistResponse:
     """Get user's watchlist items."""
-    logger.info("watchlist.get", item_type=item_type, page=page)
+    user_id = resolve_user_id(request_user)
+    logger.info("watchlist.get", user_id=user_id, item_type=item_type, page=page)
 
     items, total = await watchlist_service.get_watchlist(
         session,
+        user_id=user_id,
         item_type=item_type,
         include_inactive=include_inactive,
         page=page,
@@ -152,57 +71,85 @@ async def get_watchlist(
 
 @router.post("", response_model=WatchlistItemResponse)
 async def add_to_watchlist(
-    request: WatchlistAddRequest,
+    payload: WatchlistAddRequest,
+    request: Request,
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> WatchlistItemResponse:
     """Add an item to the watchlist."""
+    user_id = resolve_user_id(request_user)
     logger.info(
-        "watchlist.add",
-        item_type=request.item_type,
-        item_value=request.item_value,
+        "watchlist.add", user_id=user_id, item_type=payload.item_type, item_value=payload.item_value
     )
 
     try:
         item = await watchlist_service.add_to_watchlist(
             session,
-            item_type=request.item_type,
-            item_value=request.item_value,
-            name=request.name,
-            notes=request.notes,
-            notify_expiration=request.notify_expiration,
-            notify_maintenance=request.notify_maintenance,
-            notify_citations=request.notify_citations,
-            notify_new_patents=request.notify_new_patents,
-            expiration_lead_days=request.expiration_lead_days,
-            maintenance_lead_days=request.maintenance_lead_days,
+            item_type=payload.item_type,
+            item_value=payload.item_value,
+            user_id=user_id,
+            name=payload.name,
+            notes=payload.notes,
+            notify_expiration=payload.notify_expiration,
+            notify_maintenance=payload.notify_maintenance,
+            notify_citations=payload.notify_citations,
+            notify_new_patents=payload.notify_new_patents,
+            expiration_lead_days=payload.expiration_lead_days,
+            maintenance_lead_days=payload.maintenance_lead_days,
         )
-        await session.commit()
-        return WatchlistItemResponse(**item)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error("watchlist.add_failed", error=str(e))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        logger.error("watchlist.add_failed", error=str(exc))
         raise HTTPException(status_code=500, detail="Failed to add to watchlist")
+
+    await activity_service.log_event(
+        session,
+        event_type="watchlist.added",
+        user_id=request_user.user_id if request_user else None,
+        resource_type="watchlist_item",
+        resource_id=str(item["id"]),
+        event_metadata={"item_type": payload.item_type, "item_value": payload.item_value},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"),
+    )
+    await session.commit()
+    return WatchlistItemResponse(**item)
 
 
 @router.patch("/{item_id}", response_model=WatchlistItemResponse)
 async def update_watchlist_item(
     item_id: int,
-    request: WatchlistUpdateRequest,
+    payload: WatchlistUpdateRequest,
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> WatchlistItemResponse:
     """Update a watchlist item."""
-    logger.info("watchlist.update", item_id=item_id)
+    user_id = resolve_user_id(request_user)
+    logger.info("watchlist.update", user_id=user_id, item_id=item_id)
 
-    updates = request.model_dump(exclude_unset=True)
+    updates = payload.model_dump(exclude_unset=True)
     if not updates:
         raise HTTPException(status_code=400, detail="No updates provided")
 
-    item = await watchlist_service.update_watchlist_item(session, item_id=item_id, **updates)
+    item = await watchlist_service.update_watchlist_item(
+        session,
+        item_id=item_id,
+        user_id=user_id,
+        **updates,
+    )
 
     if not item:
         raise HTTPException(status_code=404, detail="Watchlist item not found")
 
+    await activity_service.log_event(
+        session,
+        event_type="watchlist.updated",
+        user_id=request_user.user_id if request_user else None,
+        resource_type="watchlist_item",
+        resource_id=str(item_id),
+        event_metadata={"fields": sorted(updates.keys())},
+    )
     await session.commit()
     return WatchlistItemResponse(**item)
 
@@ -210,16 +157,27 @@ async def update_watchlist_item(
 @router.delete("/{item_id}")
 async def remove_from_watchlist(
     item_id: int,
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> dict[str, str | bool]:
     """Remove an item from the watchlist."""
-    logger.info("watchlist.remove", item_id=item_id)
+    user_id = resolve_user_id(request_user)
+    logger.info("watchlist.remove", user_id=user_id, item_id=item_id)
 
-    deleted = await watchlist_service.remove_from_watchlist(session, item_id=item_id)
+    deleted = await watchlist_service.remove_from_watchlist(
+        session, item_id=item_id, user_id=user_id
+    )
 
     if not deleted:
         raise HTTPException(status_code=404, detail="Watchlist item not found")
 
+    await activity_service.log_event(
+        session,
+        event_type="watchlist.removed",
+        user_id=request_user.user_id if request_user else None,
+        resource_type="watchlist_item",
+        resource_id=str(item_id),
+    )
     await session.commit()
     return {"success": True, "message": "Item removed from watchlist"}
 
@@ -230,13 +188,16 @@ async def get_alerts(
     alert_type: str | None = Query(None),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> AlertListResponse:
     """Get alerts for watched items."""
-    logger.info("watchlist.alerts", unread_only=unread_only, alert_type=alert_type)
+    user_id = resolve_user_id(request_user)
+    logger.info("watchlist.alerts", user_id=user_id, unread_only=unread_only, alert_type=alert_type)
 
     alerts, total = await watchlist_service.get_alerts(
         session,
+        user_id=user_id,
         unread_only=unread_only,
         alert_type=alert_type,
         page=page,
@@ -253,22 +214,26 @@ async def get_alerts(
 
 @router.get("/alerts/summary", response_model=AlertSummaryResponse)
 async def get_alert_summary(
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> AlertSummaryResponse:
     """Get summary of alerts for dashboard."""
-    logger.info("watchlist.alert_summary")
+    user_id = resolve_user_id(request_user)
+    logger.info("watchlist.alert_summary", user_id=user_id)
 
-    summary = await watchlist_service.get_alert_summary(session)
+    summary = await watchlist_service.get_alert_summary(session, user_id=user_id)
     return AlertSummaryResponse(**summary)
 
 
 @router.post("/alerts/{alert_id}/read")
 async def mark_alert_read(
     alert_id: int,
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> dict[str, bool]:
     """Mark an alert as read."""
-    success = await watchlist_service.mark_alert_read(session, alert_id=alert_id)
+    user_id = resolve_user_id(request_user)
+    success = await watchlist_service.mark_alert_read(session, alert_id=alert_id, user_id=user_id)
 
     if not success:
         raise HTTPException(status_code=404, detail="Alert not found")
@@ -280,10 +245,12 @@ async def mark_alert_read(
 @router.post("/alerts/{alert_id}/dismiss")
 async def dismiss_alert(
     alert_id: int,
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
-) -> dict:
+) -> dict[str, bool]:
     """Dismiss an alert."""
-    success = await watchlist_service.dismiss_alert(session, alert_id=alert_id)
+    user_id = resolve_user_id(request_user)
+    success = await watchlist_service.dismiss_alert(session, alert_id=alert_id, user_id=user_id)
 
     if not success:
         raise HTTPException(status_code=404, detail="Alert not found")
@@ -295,14 +262,9 @@ async def dismiss_alert(
 @router.post("/generate-alerts", dependencies=[Depends(verify_admin_api_key)])
 async def generate_alerts(
     session: AsyncSession = Depends(get_session),
-) -> dict:
-    """Generate alerts for watchlist items (admin/cron endpoint).
-
-    Requires X-API-Key header with a valid admin API key.
-    """
+) -> dict[str, bool | int]:
+    """Generate alerts for watchlist items (admin/cron endpoint)."""
     logger.info("watchlist.generate_alerts")
-
     count = await watchlist_service.generate_alerts_for_all_users(session)
     await session.commit()
-
     return {"success": True, "alerts_created": count}

@@ -1,7 +1,10 @@
+from typing import Any, cast
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import RequestUserContext, get_optional_request_user, resolve_user_id
 from src.config import settings
 from src.database.connection import get_session
 from src.services.stats_service import stats_service
@@ -49,7 +52,8 @@ async def detailed_health_check() -> DetailedHealthResponse:
     try:
         import redis.asyncio as aioredis
 
-        r = aioredis.from_url(settings.redis_url)  # type: ignore[no-untyped-call]
+        redis_factory = cast(Any, aioredis).from_url
+        r = cast("aioredis.Redis", redis_factory(settings.redis_url))
         await r.ping()
         await r.aclose()
     except Exception:
@@ -67,10 +71,11 @@ async def detailed_health_check() -> DetailedHealthResponse:
 
 @router.get("/stats")
 async def get_dashboard_stats(
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """Get dashboard statistics for the frontend."""
-    return await stats_service.get_dashboard_stats(session)
+    return await stats_service.get_dashboard_stats(session, user_id=resolve_user_id(request_user))
 
 
 @router.get("/status")

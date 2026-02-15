@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     secret_key: str = ""
     access_token_expire_minutes: int = 1440
     algorithm: str = "HS256"
+    google_oauth_client_id: str = ""
+    google_oauth_redirect_uri: str = ""
+    microsoft_oauth_client_id: str = ""
+    microsoft_oauth_redirect_uri: str = ""
 
     @property
     def validated_secret_key(self) -> str:

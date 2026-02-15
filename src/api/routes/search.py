@@ -1,11 +1,13 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.ai.search_service import search_service
+from src.api.dependencies.auth import RequestUserContext, get_optional_request_user
 from src.api.schemas.search import SearchRequest, SearchResponse, SearchResultItem
 from src.database.connection import get_session
+from src.services.activity_service import activity_service
 from src.utils.logger import logger
 
 router = APIRouter()
@@ -14,6 +16,8 @@ router = APIRouter()
 @router.post("", response_model=SearchResponse)
 async def search_patents(
     request: SearchRequest,
+    http_request: Request,
+    request_user: RequestUserContext | None = Depends(get_optional_request_user),
     session: AsyncSession = Depends(get_session),
 ) -> SearchResponse:
     """
@@ -56,6 +60,21 @@ async def search_patents(
         results, total = await search_service.hybrid_search(
             session, request.query, filters, request.page, request.per_page
         )
+
+    await activity_service.log_event(
+        session,
+        event_type="search.query",
+        user_id=request_user.user_id if request_user else None,
+        resource_type="search",
+        event_metadata={
+            "query": request.query,
+            "search_type": request.search_type,
+            "result_count": len(results),
+            "page": request.page,
+        },
+        ip_address=http_request.client.host if http_request.client else None,
+        user_agent=http_request.headers.get("User-Agent"),
+    )
 
     return SearchResponse(
         results=[SearchResultItem(**r) for r in results],

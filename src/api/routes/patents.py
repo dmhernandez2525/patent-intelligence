@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import get_optional_request_user
 from src.api.schemas.patent import PatentDetailResponse, PatentListResponse, PatentResponse
 from src.database.connection import get_session
 from src.models.patent import Patent
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_optional_request_user)])
 
 
 @router.get("", response_model=PatentListResponse)

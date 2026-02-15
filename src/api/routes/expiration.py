@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import get_optional_request_user
 from src.api.schemas.expiration import (
     ExpirationDashboardResponse,
     ExpirationListResponse,
@@ -13,7 +14,7 @@ from src.database.connection import get_session
 from src.services.expiration_service import expiration_service
 from src.utils.logger import logger
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_optional_request_user)])
 
 
 @router.get("/dashboard", response_model=ExpirationDashboardResponse)
