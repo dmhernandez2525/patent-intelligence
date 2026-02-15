@@ -22,6 +22,12 @@ from src.models.collaboration_watchlist import (
     SharedWatchlistMember,
 )
 from src.models.ingestion import IngestionCheckpoint, IngestionJob
+from src.models.landscape import (
+    ClusterMethod,
+    LandscapePoint,
+    LandscapeSnapshot,
+    ReductionMethod,
+)
 from src.models.organization import Organization, OrganizationInvite, OrganizationMember
 from src.models.patent import (
     Citation,
@@ -57,11 +63,14 @@ __all__ = [
     "Base",
     "ChannelType",
     "Citation",
+    "ClusterMethod",
     "CollaborativeAnnotation",
     "DeliveryStatus",
     "DigestFrequency",
     "IngestionCheckpoint",
     "IngestionJob",
+    "LandscapePoint",
+    "LandscapeSnapshot",
     "MaintenanceFee",
     "MentionNotification",
     "NotificationChannel",
@@ -76,6 +85,7 @@ __all__ = [
     "PatentFamilyMember",
     "ProjectPermission",
     "ProjectStatus",
+    "ReductionMethod",
     "ReportFormat",
     "ReportSchedule",
     "ReportStatus",
