@@ -86,7 +86,11 @@ class AnalyticsService:
         self, session: AsyncSession, query_id: int, user_id: int,
     ) -> SavedQuery:
         query = await self._get_user_query(session, query_id, user_id)
-        result = await self._execute_query(query.query_config, query.filters)
+        try:
+            result = await self._execute_query(query.query_config, query.filters)
+        except Exception:
+            logger.exception("query.execute_failed", query_id=query_id)
+            result = {"error": "Query execution failed", "patents": []}
         query.last_run_at = datetime.now(UTC)
         query.run_count = (query.run_count or 0) + 1
         query.query_config = {**query.query_config, "last_result": result}

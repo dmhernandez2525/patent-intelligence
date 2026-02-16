@@ -15,7 +15,7 @@ branch_labels = None
 depends_on = None
 
 
-def _ts():
+def _ts() -> sa.Column:
     return sa.Column(
         sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
     )

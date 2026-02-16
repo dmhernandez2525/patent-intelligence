@@ -65,12 +65,15 @@ class ApiPlatformService:
         self, session: AsyncSession, raw_key: str,
     ) -> ApiKey | None:
         key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+        prefix = raw_key[:12]
         r = await session.execute(
             select(ApiKey).where(and_(
-                ApiKey.key_hash == key_hash,
+                ApiKey.key_prefix == prefix,
                 ApiKey.is_active.is_(True))))
         api_key = r.scalar_one_or_none()
         if api_key is None:
+            return None
+        if not secrets.compare_digest(api_key.key_hash, key_hash):
             return None
         if api_key.expires_at and api_key.expires_at < datetime.now(UTC):
             return None

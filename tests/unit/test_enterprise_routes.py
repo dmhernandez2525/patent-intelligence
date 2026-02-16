@@ -43,10 +43,21 @@ def _tenant(tid=1, oid=1):
         data_region="us-east", is_isolated=False,
         custom_branding=None, created_at=None)
 
+class _R:
+    """Minimal result mock for scalar_one_or_none."""
+    def __init__(self, val=None):
+        self._v = val
+    def scalar_one_or_none(self):
+        return self._v
+
 def _patch(mp, name, rv=None, exc=None):
     mock = AsyncMock(side_effect=exc) if exc else AsyncMock(return_value=rv)
     mp.setattr(ent_mod, "enterprise_service",
         SimpleNamespace(**{name: mock}))
+
+def _deny_org_access(session):
+    """Make _verify_org_access reject the user (not a member)."""
+    session.execute = AsyncMock(return_value=_R(val=None))
 
 
 # ---- SSO Config ----
@@ -234,3 +245,43 @@ async def test_get_admin_stats(monkeypatch):
     r = await ent_mod.get_admin_stats(
         org_id=1, current_user=_user(), session=_session())
     assert r.audit_entry_count == 100
+
+
+# ---- Authorization (403 for non-members) ----
+
+@pytest.mark.asyncio
+async def test_get_sso_config_forbidden():
+    s = _session()
+    _deny_org_access(s)
+    with pytest.raises(HTTPException) as exc_info:
+        await ent_mod.get_sso_config(
+            org_id=1, current_user=_user(), session=s)
+    assert exc_info.value.status_code == 403
+
+@pytest.mark.asyncio
+async def test_list_policies_forbidden():
+    s = _session()
+    _deny_org_access(s)
+    with pytest.raises(HTTPException) as exc_info:
+        await ent_mod.list_policies(
+            org_id=1, policy_type=None, enforced=False,
+            current_user=_user(), session=s)
+    assert exc_info.value.status_code == 403
+
+@pytest.mark.asyncio
+async def test_get_tenant_settings_forbidden():
+    s = _session()
+    _deny_org_access(s)
+    with pytest.raises(HTTPException) as exc_info:
+        await ent_mod.get_tenant_settings(
+            org_id=1, current_user=_user(), session=s)
+    assert exc_info.value.status_code == 403
+
+@pytest.mark.asyncio
+async def test_get_admin_stats_forbidden():
+    s = _session()
+    _deny_org_access(s)
+    with pytest.raises(HTTPException) as exc_info:
+        await ent_mod.get_admin_stats(
+            org_id=1, current_user=_user(), session=s)
+    assert exc_info.value.status_code == 403

@@ -145,6 +145,17 @@ async def test_run_query_increments_count(monkeypatch):
     r = await svc.run_query(s, 1, 1)
     assert r.run_count == 6
 
+@pytest.mark.asyncio
+async def test_run_query_handles_execution_error(monkeypatch):
+    svc, s = _svc(), _sess()
+    q = _query()
+    monkeypatch.setattr(svc, "_get_user_query", AsyncMock(return_value=q))
+    monkeypatch.setattr(svc, "_execute_query",
+        AsyncMock(side_effect=RuntimeError("db error")))
+    r = await svc.run_query(s, 1, 1)
+    assert r.run_count == 1
+    assert "error" in r.query_config.get("last_result", {})
+
 
 # ---- Custom Metrics ----
 

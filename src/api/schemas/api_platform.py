@@ -31,7 +31,7 @@ class ApiKeyListResponse(BaseModel):
 # ---- Webhooks ----
 
 class WebhookCreateRequest(BaseModel):
-    url: str = Field(min_length=1, max_length=1000)
+    url: str = Field(min_length=1, max_length=1000, pattern=r"^https?://")
     events: dict = Field(default_factory=dict)
     description: str | None = None
 

@@ -1,4 +1,5 @@
 """Tests for the ApiPlatformService."""
+import hashlib
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
@@ -7,6 +8,9 @@ import pytest
 
 from src.models.api_platform import ApiKey, WebhookDelivery, WebhookEndpoint
 from src.services.api_platform_service import ApiPlatformService
+
+_TEST_RAW_KEY = "pi_test12345_abcdef"  # noqa: S105
+_TEST_KEY_HASH = hashlib.sha256(_TEST_RAW_KEY.encode()).hexdigest()
 
 
 class _R:
@@ -27,7 +31,7 @@ def _sess():
 def _key(kid=1, uid=1, tier="free", active=True):
     return ApiKey(
         id=kid, user_id=uid, name="Test Key",
-        key_hash="abc123", key_prefix="pi_test12345",
+        key_hash=_TEST_KEY_HASH, key_prefix=_TEST_RAW_KEY[:12],
         tier=tier, scopes={}, rate_limit_per_minute=100,
         is_active=active, last_used_at=None, expires_at=None)
 
@@ -93,7 +97,7 @@ async def test_validate_api_key_success(monkeypatch):
     svc, s = _svc(), _sess()
     k = _key()
     s.execute.return_value = _R(val=k)
-    r = await svc.validate_api_key(s, "pi_test_key_123")
+    r = await svc.validate_api_key(s, _TEST_RAW_KEY)
     assert r is not None and r.last_used_at is not None
 
 @pytest.mark.asyncio
@@ -108,7 +112,7 @@ async def test_validate_api_key_expired():
     k = _key()
     k.expires_at = datetime.now(UTC) - timedelta(days=1)
     s.execute.return_value = _R(val=k)
-    assert await svc.validate_api_key(s, "pi_expired") is None
+    assert await svc.validate_api_key(s, _TEST_RAW_KEY) is None
 
 @pytest.mark.asyncio
 async def test_revoke_api_key(monkeypatch):

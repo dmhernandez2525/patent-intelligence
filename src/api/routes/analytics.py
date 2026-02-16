@@ -244,13 +244,20 @@ async def list_schedules(
     status_code=status.HTTP_201_CREATED,
 )
 async def create_schedule(
-    payload: ScheduleCreateRequest,
+    payload: ScheduleCreateRequest, request: Request,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> ScheduleResponse:
     s = await analytics_service.create_schedule(
         session, user_id=current_user.id, frequency=payload.frequency,
         query_id=payload.query_id, metric_id=payload.metric_id)
+    await activity_service.log_event(
+        session, event_type="analytics.schedule.created",
+        user_id=current_user.id, resource_type="analytics_schedule",
+        resource_id=str(s.id),
+        event_metadata={"frequency": payload.frequency},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("User-Agent"))
     await session.commit()
     return _schedule_response(s)
 
