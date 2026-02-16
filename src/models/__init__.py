@@ -7,6 +7,13 @@ from src.models.alert_channel import (
     DigestFrequency,
     NotificationChannel,
 )
+from src.models.analytics import (
+    AnalyticsSchedule,
+    CustomMetric,
+    MetricType,
+    QueryStatus,
+    SavedQuery,
+)
 from src.models.base import Base
 from src.models.collaboration_content import (
     CollaborativeAnnotation,
@@ -69,6 +76,7 @@ from src.models.watchlist import Alert, WatchlistItem
 
 __all__ = [
     "AcquisitionTarget",
+    "AnalyticsSchedule",
     "Alert",
     "AlertDelivery",
     "AlertSchedule",
@@ -79,6 +87,7 @@ __all__ = [
     "ClusterMethod",
     "CollaborativeAnnotation",
     "CompetitorMonitor",
+    "CustomMetric",
     "DeliveryStatus",
     "DigestFrequency",
     "IngestionCheckpoint",
@@ -90,6 +99,7 @@ __all__ = [
     "LandscapeSnapshot",
     "MaintenanceFee",
     "MentionNotification",
+    "MetricType",
     "MonitorStatus",
     "NotificationChannel",
     "Organization",
@@ -105,6 +115,7 @@ __all__ = [
     "PatentFamilyMember",
     "ProjectPermission",
     "ProjectStatus",
+    "QueryStatus",
     "ReductionMethod",
     "ReportFormat",
     "ReportSchedule",
@@ -115,6 +126,7 @@ __all__ = [
     "ResearchProjectMember",
     "ResearchProjectPatent",
     "ResearchReport",
+    "SavedQuery",
     "SharedPermission",
     "SharedWatchlist",
     "SharedWatchlistInvite",

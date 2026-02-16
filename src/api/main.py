@@ -8,6 +8,7 @@ from src.api.middleware.auth_context import AuthContextMiddleware
 from src.api.routes import (
     alert_channels,
     analysis,
+    analytics,
     auth,
     collaboration_content,
     collaboration_mentions,
@@ -86,5 +87,6 @@ app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(landscape.router, prefix="/api/landscape", tags=["Landscape"])
 app.include_router(insights.router, prefix="/api/insights", tags=["Insights"])
 app.include_router(competitive.router, prefix="/api/competitive", tags=["Competitive"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])
