@@ -15,6 +15,7 @@ from src.api.routes import (
     collaboration_projects,
     collaboration_watchlists,
     competitive,
+    enterprise,
     expiration,
     health,
     ideas,
@@ -88,5 +89,6 @@ app.include_router(landscape.router, prefix="/api/landscape", tags=["Landscape"]
 app.include_router(insights.router, prefix="/api/insights", tags=["Insights"])
 app.include_router(competitive.router, prefix="/api/competitive", tags=["Competitive"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+app.include_router(enterprise.router, prefix="/api/enterprise", tags=["Enterprise"])
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])
