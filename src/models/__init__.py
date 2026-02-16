@@ -22,6 +22,12 @@ from src.models.collaboration_watchlist import (
     SharedWatchlistMember,
 )
 from src.models.ingestion import IngestionCheckpoint, IngestionJob
+from src.models.insight import (
+    InsightStatus,
+    InsightTemplate,
+    InsightType,
+    PatentInsight,
+)
 from src.models.landscape import (
     ClusterMethod,
     LandscapePoint,
@@ -69,6 +75,9 @@ __all__ = [
     "DigestFrequency",
     "IngestionCheckpoint",
     "IngestionJob",
+    "InsightStatus",
+    "InsightTemplate",
+    "InsightType",
     "LandscapePoint",
     "LandscapeSnapshot",
     "MaintenanceFee",
@@ -81,6 +90,7 @@ __all__ = [
     "PatentComment",
     "PatentCommentThread",
     "PatentClaim",
+    "PatentInsight",
     "PatentFamily",
     "PatentFamilyMember",
     "ProjectPermission",

@@ -17,6 +17,7 @@ from src.api.routes import (
     health,
     ideas,
     ingestion,
+    insights,
     landscape,
     patents,
     reports,
@@ -82,5 +83,6 @@ app.include_router(
 )
 app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(landscape.router, prefix="/api/landscape", tags=["Landscape"])
+app.include_router(insights.router, prefix="/api/insights", tags=["Insights"])
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])
