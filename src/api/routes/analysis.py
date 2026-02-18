@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import get_optional_request_user
 from src.database.connection import get_session
 from src.services.citation_service import citation_service
 from src.utils.logger import logger
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_optional_request_user)])
 
 
 @router.get("/trends")

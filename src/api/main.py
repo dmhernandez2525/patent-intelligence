@@ -4,8 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.middleware.auth_context import AuthContextMiddleware
 from src.api.routes import (
     analysis,
+    auth,
     expiration,
     health,
     ideas,
@@ -44,8 +46,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(AuthContextMiddleware)
 
 # Register routes
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(patents.router, prefix="/api/patents", tags=["Patents"])
 app.include_router(search.router, prefix="/api/search", tags=["Search"])

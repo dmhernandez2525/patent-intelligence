@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import get_optional_request_user
 from src.api.schemas.ideas import IdeaRequest, IdeaResponse, SeedResponse
 from src.database.connection import get_session
 from src.services.idea_service import idea_service
 from src.utils.logger import logger
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_optional_request_user)])
 
 
 @router.post("/generate", response_model=IdeaResponse)

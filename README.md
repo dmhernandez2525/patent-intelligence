@@ -160,6 +160,20 @@ docker compose up -d --build
 | `/api/patents/stats/overview` | GET | Patent counts overview |
 | `/api/search` | POST | Semantic/fulltext/hybrid search |
 
+### Authentication & Users
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | Register user with email/password |
+| `/api/auth/login` | POST | Login and receive JWT access token |
+| `/api/auth/me` | GET | Current authenticated user profile |
+| `/api/auth/preferences` | GET/PATCH | Read or update user preferences |
+| `/api/auth/organizations` | POST | Create a team organization |
+| `/api/auth/organizations/{id}/invites` | POST | Invite collaborator by email |
+| `/api/auth/invites/{token}/accept` | POST | Accept organization invite |
+| `/api/auth/sso/google/start` | GET | Google OAuth2 stub flow start |
+| `/api/auth/sso/microsoft/start` | GET | Microsoft OAuth2 stub flow start |
+
 ### Expiration Intelligence
 
 | Endpoint | Method | Description |

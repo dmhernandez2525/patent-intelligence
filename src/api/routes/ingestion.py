@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.dependencies.auth import get_optional_request_user
 from src.config import settings
 from src.database.connection import get_session
 from src.models.ingestion import IngestionCheckpoint, IngestionJob
@@ -25,7 +26,8 @@ async def verify_admin_api_key(x_api_key: str = Header(..., alias="X-API-Key")) 
             detail="Invalid API key",
         )
 
-router = APIRouter()
+
+router = APIRouter(dependencies=[Depends(get_optional_request_user)])
 
 
 class IngestionTriggerRequest(BaseModel):
@@ -62,7 +64,9 @@ class IngestionStatusResponse(BaseModel):
     checkpoint: dict | None = None
 
 
-@router.post("/trigger", response_model=IngestionJobResponse, dependencies=[Depends(verify_admin_api_key)])
+@router.post(
+    "/trigger", response_model=IngestionJobResponse, dependencies=[Depends(verify_admin_api_key)]
+)
 async def trigger_ingestion(
     request: IngestionTriggerRequest,
     session: AsyncSession = Depends(get_session),
