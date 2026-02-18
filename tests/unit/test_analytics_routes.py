@@ -237,11 +237,24 @@ async def test_list_schedules(monkeypatch):
 @pytest.mark.asyncio
 async def test_create_schedule(monkeypatch):
     _patch(monkeypatch, "create_schedule", rv=_schedule(3))
+    _patch_act(monkeypatch)
     payload = SimpleNamespace(
         frequency="daily", query_id=None, metric_id=None)
     r = await analytics_mod.create_schedule(
-        payload=payload, current_user=_user(), session=_session())
+        payload=payload, request=_req(),
+        current_user=_user(), session=_session())
     assert r.id == 3
+
+@pytest.mark.asyncio
+async def test_create_schedule_logs_activity(monkeypatch):
+    _patch(monkeypatch, "create_schedule", rv=_schedule(3))
+    act = _patch_act(monkeypatch)
+    payload = SimpleNamespace(
+        frequency="weekly", query_id=None, metric_id=None)
+    await analytics_mod.create_schedule(
+        payload=payload, request=_req(),
+        current_user=_user(), session=_session())
+    assert act.log_event.call_args[1]["event_type"] == "analytics.schedule.created"
 
 @pytest.mark.asyncio
 async def test_update_schedule(monkeypatch):

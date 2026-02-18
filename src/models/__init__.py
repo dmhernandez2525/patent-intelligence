@@ -14,6 +14,12 @@ from src.models.analytics import (
     QueryStatus,
     SavedQuery,
 )
+from src.models.api_platform import (
+    ApiKey,
+    ApiTier,
+    WebhookDelivery,
+    WebhookEndpoint,
+)
 from src.models.base import Base
 from src.models.collaboration_content import (
     CollaborativeAnnotation,
@@ -85,6 +91,8 @@ __all__ = [
     "AcquisitionTarget",
     "AnalyticsSchedule",
     "Alert",
+    "ApiKey",
+    "ApiTier",
     "AuditEntry",
     "AlertDelivery",
     "AlertSchedule",
@@ -148,4 +156,6 @@ __all__ = [
     "UserActivityLog",
     "UserPreference",
     "WatchlistItem",
+    "WebhookDelivery",
+    "WebhookEndpoint",
 ]

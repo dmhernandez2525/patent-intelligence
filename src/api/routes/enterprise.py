@@ -7,6 +7,7 @@ from fastapi import (
     Query,
     status,
 )
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies.auth import get_current_user
@@ -24,10 +25,24 @@ from src.api.schemas.enterprise import (
     TenantSettingsResponse,
 )
 from src.database.connection import get_session
+from src.models.organization import OrganizationMember
 from src.models.user import User
 from src.services.enterprise_service import enterprise_service
 
 router = APIRouter()
+
+
+async def _verify_org_access(
+    session: AsyncSession, org_id: int, user_id: int,
+) -> None:
+    """Verify the user is a member of the organization."""
+    r = await session.execute(
+        select(OrganizationMember.id).where(and_(
+            OrganizationMember.organization_id == org_id,
+            OrganizationMember.user_id == user_id)))
+    if r.scalar_one_or_none() is None:
+        raise HTTPException(
+            status_code=403, detail="Not a member of this organization")
 
 
 def _sso_response(c) -> SSOConfigResponse:
@@ -77,6 +92,7 @@ async def get_sso_config(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> SSOConfigResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     config = await enterprise_service.get_sso_config(session, org_id)
     if config is None:
         raise HTTPException(status_code=404, detail="SSO config not found")
@@ -88,6 +104,7 @@ async def upsert_sso_config(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> SSOConfigResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     config = await enterprise_service.upsert_sso_config(
         session, organization_id=org_id, provider=payload.provider,
         entity_id=payload.entity_id, metadata_url=payload.metadata_url,
@@ -103,6 +120,7 @@ async def delete_sso_config(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, bool]:
+    await _verify_org_access(session, org_id, current_user.id)
     try:
         await enterprise_service.delete_sso_config(session, org_id)
     except ValueError as exc:
@@ -122,6 +140,7 @@ async def list_audit_entries(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> AuditListResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     entries = await enterprise_service.list_audit_entries(
         session, organization_id=org_id, action=action,
         user_id=user_id, limit=limit, offset=offset)
@@ -139,6 +158,7 @@ async def list_policies(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> PolicyListResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     policies = await enterprise_service.list_policies(
         session, organization_id=org_id,
         policy_type=policy_type, enforced_only=enforced)
@@ -154,6 +174,7 @@ async def create_policy(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> PolicyResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     p = await enterprise_service.create_policy(
         session, organization_id=org_id, policy_type=payload.policy_type,
         name=payload.name, description=payload.description,
@@ -167,6 +188,7 @@ async def update_policy(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> PolicyResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     updates = payload.model_dump(exclude_unset=True)
     if not updates:
         raise HTTPException(status_code=400, detail="No updates provided")
@@ -188,6 +210,7 @@ async def evaluate_policy(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> PolicyResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     try:
         p = await enterprise_service.evaluate_policy(
             session, policy_id=policy_id, organization_id=org_id)
@@ -202,6 +225,7 @@ async def delete_policy(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, bool]:
+    await _verify_org_access(session, org_id, current_user.id)
     try:
         await enterprise_service.delete_policy(
             session, policy_id=policy_id, organization_id=org_id)
@@ -218,6 +242,7 @@ async def get_tenant_settings(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> TenantSettingsResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     ts = await enterprise_service.get_tenant_settings(session, org_id)
     if ts is None:
         raise HTTPException(status_code=404, detail="Tenant settings not found")
@@ -229,6 +254,7 @@ async def upsert_tenant_settings(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> TenantSettingsResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     ts = await enterprise_service.upsert_tenant_settings(
         session, organization_id=org_id,
         **payload.model_dump(exclude_unset=True))
@@ -243,5 +269,6 @@ async def get_admin_stats(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> AdminStatsResponse:
+    await _verify_org_access(session, org_id, current_user.id)
     stats = await enterprise_service.get_admin_stats(session, org_id)
     return AdminStatsResponse(**stats)

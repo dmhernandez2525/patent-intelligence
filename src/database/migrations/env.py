@@ -10,6 +10,7 @@ from src.config import settings
 from src.models import (
     alert_channel,
     analytics,
+    api_platform,
     collaboration_content,
     collaboration_watchlist,
     competitive,
@@ -29,6 +30,7 @@ from src.models.base import Base
 _MODEL_MODULES = (
     alert_channel,
     analytics,
+    api_platform,
     collaboration_content,
     collaboration_watchlist,
     competitive,
