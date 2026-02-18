@@ -74,6 +74,20 @@ class Settings(BaseSettings):
     # Admin API Key for internal endpoints (cron jobs, etc.)
     admin_api_key: str = ""
 
+    # Email/SMTP
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_from_email: str = "alerts@patent-intelligence.com"
+    smtp_username: str = ""
+    smtp_password: str = ""
+
+    # Webhook defaults
+    webhook_timeout_seconds: int = 10
+    webhook_max_retries: int = 3
+
+    # Slack
+    slack_default_webhook_url: str = ""
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 

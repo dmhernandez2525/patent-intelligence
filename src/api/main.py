@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.middleware.auth_context import AuthContextMiddleware
 from src.api.routes import (
+    alert_channels,
     analysis,
     auth,
     collaboration_content,
@@ -73,6 +74,9 @@ app.include_router(
 )
 app.include_router(
     collaboration_mentions.router, prefix="/api/collaboration", tags=["Collaboration"]
+)
+app.include_router(
+    alert_channels.router, prefix="/api/alerts", tags=["Alerts"]
 )
 app.include_router(ingestion.router, prefix="/api/ingestion", tags=["Ingestion"])
 app.include_router(whitespace.router, prefix="/api/whitespace", tags=["White Space"])
