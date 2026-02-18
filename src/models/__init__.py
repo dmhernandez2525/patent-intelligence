@@ -21,6 +21,12 @@ from src.models.collaboration_watchlist import (
     SharedWatchlistItem,
     SharedWatchlistMember,
 )
+from src.models.competitive import (
+    AcquisitionTarget,
+    CompetitorMonitor,
+    MonitorStatus,
+    PortfolioComparison,
+)
 from src.models.ingestion import IngestionCheckpoint, IngestionJob
 from src.models.insight import (
     InsightStatus,
@@ -62,6 +68,7 @@ from src.models.user import User, UserActivityLog, UserPreference
 from src.models.watchlist import Alert, WatchlistItem
 
 __all__ = [
+    "AcquisitionTarget",
     "Alert",
     "AlertDelivery",
     "AlertSchedule",
@@ -71,6 +78,7 @@ __all__ = [
     "Citation",
     "ClusterMethod",
     "CollaborativeAnnotation",
+    "CompetitorMonitor",
     "DeliveryStatus",
     "DigestFrequency",
     "IngestionCheckpoint",
@@ -82,6 +90,7 @@ __all__ = [
     "LandscapeSnapshot",
     "MaintenanceFee",
     "MentionNotification",
+    "MonitorStatus",
     "NotificationChannel",
     "Organization",
     "OrganizationInvite",
@@ -92,6 +101,7 @@ __all__ = [
     "PatentClaim",
     "PatentInsight",
     "PatentFamily",
+    "PortfolioComparison",
     "PatentFamilyMember",
     "ProjectPermission",
     "ProjectStatus",
