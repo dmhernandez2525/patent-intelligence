@@ -34,6 +34,13 @@ from src.models.competitive import (
     MonitorStatus,
     PortfolioComparison,
 )
+from src.models.enterprise import (
+    AuditEntry,
+    CompliancePolicy,
+    PolicyType,
+    SSOConfig,
+    TenantSettings,
+)
 from src.models.ingestion import IngestionCheckpoint, IngestionJob
 from src.models.insight import (
     InsightStatus,
@@ -78,6 +85,7 @@ __all__ = [
     "AcquisitionTarget",
     "AnalyticsSchedule",
     "Alert",
+    "AuditEntry",
     "AlertDelivery",
     "AlertSchedule",
     "AlertTemplate",
@@ -87,6 +95,7 @@ __all__ = [
     "ClusterMethod",
     "CollaborativeAnnotation",
     "CompetitorMonitor",
+    "CompliancePolicy",
     "CustomMetric",
     "DeliveryStatus",
     "DigestFrequency",
@@ -111,6 +120,7 @@ __all__ = [
     "PatentClaim",
     "PatentInsight",
     "PatentFamily",
+    "PolicyType",
     "PortfolioComparison",
     "PatentFamilyMember",
     "ProjectPermission",
@@ -127,11 +137,13 @@ __all__ = [
     "ResearchProjectPatent",
     "ResearchReport",
     "SavedQuery",
+    "SSOConfig",
     "SharedPermission",
     "SharedWatchlist",
     "SharedWatchlistInvite",
     "SharedWatchlistItem",
     "SharedWatchlistMember",
+    "TenantSettings",
     "User",
     "UserActivityLog",
     "UserPreference",
