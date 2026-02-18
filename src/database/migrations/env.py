@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.config import settings
 from src.models import (
     alert_channel,
+    analytics,
     collaboration_content,
     collaboration_watchlist,
     competitive,
@@ -26,6 +27,7 @@ from src.models.base import Base
 
 _MODEL_MODULES = (
     alert_channel,
+    analytics,
     collaboration_content,
     collaboration_watchlist,
     competitive,
