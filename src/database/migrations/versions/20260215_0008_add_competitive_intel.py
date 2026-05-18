@@ -15,10 +15,11 @@ branch_labels = None
 depends_on = None
 
 
-def _ts() -> sa.Column:
-    return sa.Column(
-        sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
-    )
+def _ts() -> list[sa.Column]:
+    return [
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+    ]
 
 
 def upgrade() -> None:
@@ -32,7 +33,7 @@ def upgrade() -> None:
         sa.Column("status", sa.String(20), server_default=sa.text("'active'")),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("last_checked_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_comp_monitors_user_status", "competitor_monitors", ["user_id", "status"])
@@ -49,7 +50,7 @@ def upgrade() -> None:
         sa.Column("summary", sa.Text(), nullable=True),
         sa.Column("error_message", sa.Text(), nullable=True),
         sa.Column("computed_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_portfolio_comp_user", "portfolio_comparisons", ["user_id"])
@@ -65,7 +66,7 @@ def upgrade() -> None:
         sa.Column("cpc_overlap", postgresql.JSONB(), server_default=sa.text("'[]'::jsonb")),
         sa.Column("analysis_data", postgresql.JSONB(), server_default=sa.text("'{}'::jsonb")),
         sa.Column("is_starred", sa.Boolean(), server_default=sa.text("false")),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_acq_targets_user", "acquisition_targets", ["user_id"])

@@ -15,10 +15,11 @@ branch_labels = None
 depends_on = None
 
 
-def _ts() -> sa.Column:
-    return sa.Column(
-        sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
-    )
+def _ts() -> list[sa.Column]:
+    return [
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+    ]
 
 
 def upgrade() -> None:
@@ -33,7 +34,7 @@ def upgrade() -> None:
         sa.Column("is_enabled", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("auto_provision", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("default_role", sa.String(20), server_default=sa.text("'viewer'")),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.UniqueConstraint("organization_id"),
     )
@@ -52,7 +53,7 @@ def upgrade() -> None:
         sa.Column("ip_address", sa.String(45), nullable=True),
         sa.Column("user_agent", sa.String(255), nullable=True),
         sa.Column("compliance_tags", postgresql.JSONB(), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="SET NULL"),
     )
@@ -70,7 +71,7 @@ def upgrade() -> None:
         sa.Column("rules", postgresql.JSONB(), server_default=sa.text("'{}'::jsonb")),
         sa.Column("is_enforced", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("last_evaluated_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
     )
     op.create_index(
@@ -86,7 +87,7 @@ def upgrade() -> None:
         sa.Column("data_region", sa.String(20), server_default=sa.text("'us-east'")),
         sa.Column("is_isolated", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("custom_branding", postgresql.JSONB(), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["organization_id"], ["organizations.id"], ondelete="CASCADE"),
         sa.UniqueConstraint("organization_id"),
     )
