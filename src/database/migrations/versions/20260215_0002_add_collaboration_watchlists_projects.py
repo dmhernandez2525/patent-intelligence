@@ -1,7 +1,7 @@
 """Add shared watchlist and research project models.
 
 Revision ID: 20260215_0002
-Revises: 20260215_0001
+Revises: 20260215_0001a
 Create Date: 2026-02-15
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "20260215_0002"
-down_revision: str | None = "20260215_0001"
+down_revision: str | None = "20260215_0001a"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -15,10 +15,11 @@ branch_labels = None
 depends_on = None
 
 
-def _ts() -> sa.Column:
-    return sa.Column(
-        sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
-    )
+def _ts() -> list[sa.Column]:
+    return [
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+    ]
 
 
 def upgrade() -> None:
@@ -35,7 +36,7 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), server_default=sa.text("true")),
         sa.Column("last_used_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_api_key_user", "api_keys", ["user_id"])
@@ -53,7 +54,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("failure_count", sa.Integer(), server_default=sa.text("0")),
         sa.Column("last_triggered_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_webhook_user", "webhook_endpoints", ["user_id"])
@@ -70,7 +71,7 @@ def upgrade() -> None:
         sa.Column("success", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("attempt_count", sa.Integer(), server_default=sa.text("1")),
         sa.Column("next_retry_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(
             ["endpoint_id"], ["webhook_endpoints.id"], ondelete="CASCADE"),
     )

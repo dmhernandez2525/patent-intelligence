@@ -15,10 +15,11 @@ branch_labels = None
 depends_on = None
 
 
-def _ts() -> sa.Column:
-    return sa.Column(
-        sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
-    )
+def _ts() -> list[sa.Column]:
+    return [
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+    ]
 
 
 def upgrade() -> None:
@@ -34,7 +35,7 @@ def upgrade() -> None:
         sa.Column("is_public", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("last_run_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("run_count", sa.Integer(), server_default=sa.text("0")),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_saved_queries_user_status", "saved_queries", ["user_id", "status"])
@@ -48,7 +49,7 @@ def upgrade() -> None:
         sa.Column("definition", postgresql.JSONB(), server_default=sa.text("'{}'::jsonb")),
         sa.Column("current_value", postgresql.JSONB(), nullable=True),
         sa.Column("last_computed_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
     )
     op.create_index("ix_custom_metrics_user", "custom_metrics", ["user_id"])
@@ -62,7 +63,7 @@ def upgrade() -> None:
         sa.Column("frequency", sa.String(20), server_default=sa.text("'daily'")),
         sa.Column("is_active", sa.Boolean(), server_default=sa.text("true")),
         sa.Column("next_run_at", sa.DateTime(timezone=True), nullable=True),
-        _ts(), _ts(),
+        *_ts(),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["query_id"], ["saved_queries.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["metric_id"], ["custom_metrics.id"], ondelete="SET NULL"),
